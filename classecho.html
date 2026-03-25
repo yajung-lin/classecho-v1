@@ -460,6 +460,9 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
   <div class="panel-section">
     <h4>👥 名單管理</h4>
     <div class="roster-scroll" id="roster-list"></div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;">
+      <button class="btn-danger" style="flex:1;" onclick="rosterClearAll()">🗑 清除全部名單</button>
+    </div>
     <div class="fl">貼上名單（每行一位）</div>
     <textarea id="roster-input" rows="3" placeholder="王小明&#10;李小花&#10;張大偉"></textarea>
     <button class="btn-primary" onclick="rosterImport()">匯入名單</button>
@@ -476,6 +479,30 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
       <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="rosterFromExcel(this)">
       <button class="btn-control" style="width:100%;justify-content:center;margin-top:5px;" onclick="document.getElementById('excel-file').click()">📂 上傳 Excel/CSV</button>
     </div>
+  </div>
+
+  <!-- Theme Color -->
+  <div class="panel-section">
+    <h4>🎨 頁面配色</h4>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div>
+        <div class="fl">主色（按鈕、標題）</div>
+        <input type="color" id="theme-primary" value="#5E97C0" style="width:100%;height:34px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;padding:2px;" oninput="applyTheme()">
+      </div>
+      <div>
+        <div class="fl">粉色點綴</div>
+        <input type="color" id="theme-pink" value="#F2A5B2" style="width:100%;height:34px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;padding:2px;" oninput="applyTheme()">
+      </div>
+      <div>
+        <div class="fl">頁面背景</div>
+        <input type="color" id="theme-bg" value="#F5F0EB" style="width:100%;height:34px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;padding:2px;" oninput="applyTheme()">
+      </div>
+      <div>
+        <div class="fl">卡片背景</div>
+        <input type="color" id="theme-surface" value="#FFFCF9" style="width:100%;height:34px;border-radius:9px;border:1.5px solid var(--border);cursor:pointer;padding:2px;" oninput="applyTheme()">
+      </div>
+    </div>
+    <button class="btn-control" style="width:100%;justify-content:center;margin-top:8px;" onclick="resetTheme()">↺ 恢復預設</button>
   </div>
 
   <!-- Question -->
@@ -762,6 +789,7 @@ async function initTeacher() {
   document.getElementById('teacher-view').classList.remove('hidden');
   qbLoad();
   rosterLoad();
+  loadTheme();
 }
 
 function updateQR() {
@@ -1333,6 +1361,63 @@ function renderRoster() {
 }
 
 function rosterDel(i) { Roster.splice(i,1); rosterSaveData(); renderRoster(); }
+
+function rosterClearAll() {
+  if (!confirm('確定清除全部名單？')) return;
+  Roster = []; rosterSaveData(); renderRoster();
+  showToast('🗑 已清除全部名單');
+}
+
+// ════════════════════════════════════════════════════
+// 🎨 THEME
+// ════════════════════════════════════════════════════
+function applyTheme() {
+  const r = document.documentElement.style;
+  r.setProperty('--primary', document.getElementById('theme-primary').value);
+  r.setProperty('--primary-d', shadeColor(document.getElementById('theme-primary').value, -20));
+  r.setProperty('--primary-light', shadeColor(document.getElementById('theme-primary').value, 70));
+  r.setProperty('--pink', document.getElementById('theme-pink').value);
+  r.setProperty('--bg', document.getElementById('theme-bg').value);
+  r.setProperty('--surface', document.getElementById('theme-surface').value);
+  saveTheme();
+}
+
+function shadeColor(hex, pct) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, Math.max(0, (n>>16) + pct));
+  const g = Math.min(255, Math.max(0, ((n>>8)&0xff) + pct));
+  const b = Math.min(255, Math.max(0, (n&0xff) + pct));
+  return '#' + [r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+function saveTheme() {
+  localStorage.setItem('ce_theme', JSON.stringify({
+    primary: document.getElementById('theme-primary').value,
+    pink: document.getElementById('theme-pink').value,
+    bg: document.getElementById('theme-bg').value,
+    surface: document.getElementById('theme-surface').value,
+  }));
+}
+
+function loadTheme() {
+  const t = JSON.parse(localStorage.getItem('ce_theme') || 'null');
+  if (!t) return;
+  document.getElementById('theme-primary').value = t.primary;
+  document.getElementById('theme-pink').value = t.pink;
+  document.getElementById('theme-bg').value = t.bg;
+  document.getElementById('theme-surface').value = t.surface;
+  applyTheme();
+}
+
+function resetTheme() {
+  document.getElementById('theme-primary').value = '#5E97C0';
+  document.getElementById('theme-pink').value = '#F2A5B2';
+  document.getElementById('theme-bg').value = '#F5F0EB';
+  document.getElementById('theme-surface').value = '#FFFCF9';
+  applyTheme();
+  localStorage.removeItem('ce_theme');
+  showToast('↺ 已恢復預設配色');
+}
 
 function shuffle(arr) {
   const a = [...arr];
