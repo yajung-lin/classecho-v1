@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>課堂回聲 ClassEcho</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F5F0EB;
+  --surface: #FFFCF9;
+  --primary: #5E97C0;
+  --primary-d: #4A7FA8;
+  --primary-light: #D4E8F5;
+  --pink: #F2A5B2;
+  --mint: #8ECF9E;
+  --yellow: #F5D58A;
+  --lavender: #B8A9E8;
+  --peach: #F5BE9A;
+  --sky: #A5D4F0;
+  --text: #2D2A28;
+  --text-muted: #7A7570;
+  --border: #E0D8D0;
+  --shadow: 0 4px 24px rgba(0,0,0,0.07);
+  --r: 16px;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; }
+
+/* ── LOADING ── */
+#loading {
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; align-items:center; justify-content:center;
+  flex-direction:column; gap:16px; z-index:100;
+}
+.loading-logo { font-size:2.5rem; font-weight:900; color:var(--primary); letter-spacing:-1px; }
+.loading-logo em { color:var(--pink); font-style:normal; }
+.loading-sub { font-size:1rem; color:var(--text-muted); }
+.spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── TEACHER VIEW ── */
+#teacher-view { display:flex; flex-direction:column; height:100vh; }
+#teacher-view.hidden { display:none; }
+
+.t-header {
+  display:flex; align-items:center; gap:12px;
+  padding:10px 20px; background:var(--surface);
+  border-bottom:1px solid var(--border); flex-shrink:0;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+.t-logo { font-weight:900; font-size:1.2rem; color:var(--primary); letter-spacing:-0.5px; white-space:nowrap; }
+.t-logo em { color:var(--pink); font-style:normal; }
+.mode-tabs { display:flex; gap:6px; margin-left:auto; margin-right:12px; }
+.mode-tab {
+  padding:7px 14px; border-radius:50px; border:none; cursor:pointer;
+  font-family:inherit; font-weight:700; font-size:0.82rem;
+  background:var(--bg); color:var(--text-muted); transition:all 0.2s;
+}
+.mode-tab.active { background:var(--primary); color:white; }
+.mode-tab:hover:not(.active) { background:var(--primary-light); color:var(--primary); }
+.btn-control {
+  padding:8px 16px; border-radius:50px; border:1.5px solid var(--border);
+  background:var(--surface); cursor:pointer; font-family:inherit;
+  font-weight:700; font-size:0.82rem; color:var(--text); transition:all 0.2s;
+  display:flex; align-items:center; gap:6px; white-space:nowrap;
+}
+.btn-control:hover { border-color:var(--primary); color:var(--primary); }
+.btn-control.open { background:var(--primary); color:white; border-color:var(--primary); }
+
+.q-strip {
+  background:linear-gradient(135deg, var(--primary) 0%, #4A8AAE 100%);
+  color:white; padding:10px 24px; font-size:1rem; font-weight:700;
+  display:flex; align-items:center; gap:10px; flex-shrink:0;
+}
+.q-badge { background:rgba(255,255,255,0.25); padding:2px 10px; border-radius:50px; font-size:0.72rem; font-weight:800; letter-spacing:0.5px; white-space:nowrap; }
+.resp-count { margin-left:auto; background:rgba(255,255,255,0.2); padding:4px 14px; border-radius:50px; font-size:0.82rem; white-space:nowrap; }
+
+#display-area { flex:1; overflow:hidden; position:relative; }
+.display-mode { position:absolute; inset:0; overflow:auto; }
+.display-mode.hidden { display:none; }
+
+/* ── WORD WALL ── */
+#mode-wall { display:flex; flex-wrap:wrap; align-content:flex-start; gap:10px; padding:24px; align-items:flex-start; }
+.bubble {
+  padding:10px 20px; border-radius:50px;
+  font-weight:700; font-size:1rem; line-height:1.4;
+  animation:popIn 0.45s cubic-bezier(0.175,0.885,0.32,1.275) both;
+}
+.bubble .b-name { font-size:0.68rem; font-weight:600; opacity:0.55; display:block; margin-top:2px; }
+@keyframes popIn { from { transform:scale(0) rotate(-6deg); opacity:0; } to { transform:scale(1) rotate(0); opacity:1; } }
+
+/* ── CHART MODE ── */
+#mode-chart { display:flex; align-items:center; justify-content:center; gap:32px; padding:24px; flex-wrap:wrap; }
+.chart-wrap { background:var(--surface); border-radius:var(--r); padding:24px; box-shadow:var(--shadow); }
+#barChartEl { max-height:380px; max-width:560px; }
+#pieChartEl { max-height:320px; max-width:320px; }
+
+/* ── CARDS MODE ── */
+#mode-cards {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+  gap:14px; padding:24px; align-content:start;
+}
+.resp-card {
+  background:var(--surface); border-radius:var(--r); padding:18px 20px;
+  box-shadow:var(--shadow); border-left:4px solid var(--primary);
+  animation:slideUp 0.35s ease both;
+}
+.resp-card .c-name { font-weight:800; font-size:0.82rem; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+.resp-card .c-name::before { content:''; width:7px; height:7px; border-radius:50%; background:currentColor; display:block; flex-shrink:0; }
+.resp-card .c-text { font-size:0.93rem; line-height:1.6; }
+@keyframes slideUp { from { transform:translateY(18px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
+/* ── CAROUSEL MODE ── */
+#mode-carousel { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px; }
+.carousel-card {
+  background:var(--surface); border-radius:24px;
+  padding:44px 60px; max-width:680px; width:90%;
+  box-shadow:0 8px 40px rgba(0,0,0,0.1); text-align:center;
+  animation:fadeSlide 0.45s ease both;
+}
+.carousel-card .cr-name { font-size:0.95rem; font-weight:800; color:var(--primary); margin-bottom:18px; letter-spacing:0.5px; }
+.carousel-card .cr-text { font-size:1.55rem; font-weight:700; line-height:1.55; }
+.carousel-card .cr-num { margin-top:18px; font-size:0.82rem; color:var(--text-muted); }
+@keyframes fadeSlide { from { transform:translateX(28px); opacity:0; } to { transform:translateX(0); opacity:1; } }
+.carousel-nav { display:flex; gap:12px; }
+.carousel-nav button {
+  width:42px; height:42px; border-radius:50%; border:2px solid var(--border);
+  background:var(--surface); cursor:pointer; font-size:1.1rem;
+  display:flex; align-items:center; justify-content:center; transition:all 0.2s;
+}
+.carousel-nav button:hover { border-color:var(--primary); color:var(--primary); }
+.carousel-dots { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; max-width:400px; }
+.c-dot { width:8px; height:8px; border-radius:50%; background:var(--border); transition:all 0.3s; cursor:pointer; flex-shrink:0; }
+.c-dot.active { width:22px; border-radius:4px; background:var(--primary); }
+
+/* Empty states */
+.empty-state {
+  position:absolute; inset:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:10px; opacity:0.45; pointer-events:none;
+}
+.empty-state .e-icon { font-size:3rem; }
+.empty-state p { font-size:1.05rem; font-weight:700; color:var(--text-muted); }
+.empty-state small { font-size:0.82rem; color:var(--text-muted); }
+
+/* ── CONTROL PANEL ── */
+#panel-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.12); z-index:50; display:none; }
+#panel-overlay.open { display:block; }
+#control-panel {
+  position:fixed; top:0; right:-390px; width:370px; height:100vh;
+  background:var(--surface); box-shadow:-4px 0 30px rgba(0,0,0,0.12);
+  z-index:51; transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
+  display:flex; flex-direction:column; overflow-y:auto;
+}
+#control-panel.open { right:0; }
+.panel-header {
+  padding:18px 22px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+}
+.panel-header h3 { font-weight:900; font-size:1.05rem; }
+.btn-x { background:none; border:none; cursor:pointer; font-size:1.3rem; color:var(--text-muted); transition:color 0.2s; line-height:1; }
+.btn-x:hover { color:var(--text); }
+.panel-section { padding:18px 22px; border-bottom:1px solid var(--border); }
+.panel-section h4 { font-weight:800; font-size:0.76rem; letter-spacing:0.8px; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; }
+.fl { font-weight:700; font-size:0.83rem; margin-bottom:5px; color:var(--text); }
+textarea, input[type=text] {
+  width:100%; padding:9px 13px; border:1.5px solid var(--border);
+  border-radius:10px; font-family:inherit; font-size:0.88rem;
+  resize:vertical; background:var(--bg); color:var(--text);
+  transition:border-color 0.2s; outline:none;
+}
+textarea:focus, input[type=text]:focus { border-color:var(--primary); }
+.type-toggle { display:flex; gap:7px; margin-top:9px; }
+.type-btn {
+  flex:1; padding:8px; border-radius:9px; border:1.5px solid var(--border);
+  background:var(--bg); cursor:pointer; font-family:inherit; font-weight:700;
+  font-size:0.8rem; color:var(--text-muted); transition:all 0.2s; text-align:center;
+}
+.type-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+#options-section { margin-top:10px; }
+.opt-row { display:flex; gap:7px; margin-bottom:7px; align-items:center; }
+.opt-row input { flex:1; }
+.btn-del-opt { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:1.15rem; transition:color 0.2s; flex-shrink:0; line-height:1; }
+.btn-del-opt:hover { color:#E05A6A; }
+.btn-add-opt {
+  width:100%; padding:7px; border-radius:9px; border:1.5px dashed var(--border);
+  background:none; cursor:pointer; font-family:inherit; font-weight:700;
+  font-size:0.82rem; color:var(--text-muted); transition:all 0.2s; margin-top:2px;
+}
+.btn-add-opt:hover { border-color:var(--primary); color:var(--primary); }
+.btn-primary {
+  width:100%; padding:11px; border-radius:11px; border:none;
+  background:var(--primary); color:white; cursor:pointer;
+  font-family:inherit; font-weight:800; font-size:0.93rem;
+  margin-top:11px; transition:all 0.2s;
+}
+.btn-primary:hover { background:var(--primary-d); transform:translateY(-1px); }
+.btn-danger {
+  width:100%; padding:9px; border-radius:11px; border:1.5px solid #F5B8BE;
+  background:#FFF0F2; color:#D94F5F; cursor:pointer;
+  font-family:inherit; font-weight:700; font-size:0.88rem; transition:all 0.2s;
+}
+.btn-danger:hover { background:#FFD8DC; }
+.qr-box { background:var(--bg); border-radius:var(--r); padding:14px; text-align:center; border:1px solid var(--border); }
+.qr-box img { width:150px; height:150px; border-radius:6px; }
+.qr-room { font-size:1.45rem; font-weight:900; letter-spacing:5px; color:var(--primary); margin-top:7px; }
+.qr-url { font-size:0.7rem; color:var(--text-muted); word-break:break-all; margin-top:4px; line-height:1.4; }
+.stat-row { display:flex; align-items:center; gap:12px; padding:6px 0; }
+.stat-num { font-size:2rem; font-weight:900; color:var(--primary); }
+.stat-label { font-size:0.82rem; color:var(--text-muted); }
+.info-box { background:#FFF8E6; border:1.5px solid var(--yellow); border-radius:10px; padding:12px 14px; font-size:0.8rem; line-height:1.6; color:#7A5C2E; margin-bottom:0; }
+.info-box strong { color:#5C3E1A; display:block; margin-bottom:3px; }
+.info-box a { color:var(--primary); font-weight:700; }
+
+/* ── STUDENT VIEW ── */
+#student-view { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; overflow-y:auto; }
+#student-view.hidden { display:none; }
+.student-card { background:var(--surface); border-radius:22px; padding:32px 28px; max-width:460px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,0.1); }
+.s-logo { font-weight:900; font-size:1.05rem; color:var(--primary); margin-bottom:20px; display:flex; align-items:center; gap:7px; }
+.s-logo em { color:var(--pink); font-style:normal; }
+.s-question { background:linear-gradient(135deg,var(--primary),#4A8AAE); color:white; border-radius:var(--r); padding:16px 18px; font-size:1.05rem; font-weight:700; line-height:1.5; margin-bottom:20px; }
+.s-field { margin-bottom:14px; }
+.s-field label { display:block; font-weight:700; font-size:0.78rem; color:var(--text-muted); margin-bottom:5px; text-transform:uppercase; letter-spacing:0.5px; }
+.s-field textarea { min-height:90px; }
+.vote-options { display:flex; flex-direction:column; gap:9px; margin-top:2px; }
+.vote-btn {
+  padding:13px 18px; border-radius:11px; border:2px solid var(--border);
+  background:var(--bg); cursor:pointer; font-family:inherit;
+  font-weight:700; font-size:0.95rem; text-align:left; color:var(--text); transition:all 0.2s;
+}
+.vote-btn:hover { border-color:var(--primary); background:var(--primary-light); }
+.vote-btn.selected { background:var(--primary); color:white; border-color:var(--primary); }
+.btn-submit {
+  width:100%; padding:13px; border-radius:11px; border:none;
+  background:linear-gradient(135deg,var(--primary) 0%,#4A8AAE 100%);
+  color:white; cursor:pointer; font-family:inherit;
+  font-weight:800; font-size:0.97rem; margin-top:6px;
+  transition:all 0.25s; box-shadow:0 4px 15px rgba(94,151,192,0.35);
+}
+.btn-submit:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(94,151,192,0.48); }
+.btn-submit:disabled { opacity:0.55; cursor:not-allowed; transform:none; }
+.success-state { text-align:center; padding:16px 0; }
+.s-icon { font-size:3.5rem; margin-bottom:10px; animation:bounceIn 0.5s cubic-bezier(0.175,0.885,0.32,1.275); display:block; }
+.success-state h3 { font-size:1.25rem; font-weight:900; color:var(--primary); margin-bottom:6px; }
+.success-state p { color:var(--text-muted); font-size:0.88rem; }
+.btn-again { margin-top:18px; padding:9px 22px; border-radius:50px; border:2px solid var(--primary); background:none; cursor:pointer; font-family:inherit; font-weight:700; color:var(--primary); transition:all 0.2s; }
+.btn-again:hover { background:var(--primary); color:white; }
+@keyframes bounceIn { from{transform:scale(0)} 60%{transform:scale(1.2)} to{transform:scale(1)} }
+.setup-card { text-align:center; padding:10px 0; }
+.setup-card h2 { font-size:1.2rem; font-weight:900; margin-bottom:6px; }
+.setup-card p { color:var(--text-muted); font-size:0.87rem; margin-bottom:16px; }
+.room-row { display:flex; gap:8px; }
+.room-row input { flex:1; text-align:center; font-size:1.15rem; font-weight:900; letter-spacing:4px; text-transform:uppercase; }
+.room-row .btn-go { padding:9px 18px; border-radius:11px; border:none; background:var(--primary); color:white; cursor:pointer; font-family:inherit; font-weight:800; font-size:0.9rem; transition:all 0.2s; white-space:nowrap; }
+.room-row .btn-go:hover { background:var(--primary-d); }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+  background:var(--text); color:white; padding:11px 22px; border-radius:50px;
+  font-weight:700; font-size:0.87rem; z-index:300; transition:transform 0.3s ease;
+  pointer-events:none; white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,0.2);
+}
+.toast.show { transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="loading-logo">課堂回聲 <em>✦</em></div>
+  <div class="loading-sub">ClassEcho — 即時互動教學工具</div>
+  <div class="spinner"></div>
+</div>
+
+<!-- ═══════════════════ TEACHER VIEW ═══════════════════ -->
+<div id="teacher-view" class="hidden">
+  <header class="t-header">
+    <div class="t-logo">課堂回聲 <em>✦</em></div>
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="setMode('wall')">💬 文字牆</button>
+      <button class="mode-tab" onclick="setMode('chart')">📊 圖表</button>
+      <button class="mode-tab" onclick="setMode('cards')">🗂 回應卡</button>
+      <button class="mode-tab" onclick="setMode('carousel')">🎠 輪播</button>
+    </div>
+    <button class="btn-control" id="panel-toggle-btn" onclick="togglePanel()">⚙️ 控制面板</button>
+  </header>
+
+  <div class="q-strip">
+    <span class="q-badge">問題</span>
+    <span id="q-text-display">請先設定討論問題</span>
+    <span class="resp-count" id="resp-count">0 則回應</span>
+  </div>
+
+  <main id="display-area">
+    <!-- Word Wall -->
+    <div id="mode-wall" class="display-mode">
+      <div class="empty-state" id="wall-empty">
+        <div class="e-icon">💬</div>
+        <p>等待同學回應中...</p>
+        <small>請同學掃描 QR Code 或開啟連結</small>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div id="mode-chart" class="display-mode hidden">
+      <div class="empty-state" id="chart-empty">
+        <div class="e-icon">📊</div>
+        <p>等待投票資料...</p>
+        <small>請將問題類型設為「投票選擇」</small>
+      </div>
+      <div id="chart-content" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; gap:32px; padding:24px; flex-wrap:wrap;">
+        <div class="chart-wrap"><canvas id="barChartEl" width="540" height="360"></canvas></div>
+        <div class="chart-wrap"><canvas id="pieChartEl" width="300" height="300"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div id="mode-cards" class="display-mode hidden"></div>
+
+    <!-- Carousel -->
+    <div id="mode-carousel" class="display-mode hidden">
+      <div class="empty-state" id="carousel-empty">
+        <div class="e-icon">🎠</div>
+        <p>等待同學回應中...</p>
+        <small>回應將自動輪播顯示</small>
+      </div>
+      <div id="carousel-content" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px; height:100%;">
+        <div class="carousel-card" id="carousel-card">
+          <div class="cr-name" id="cr-name"></div>
+          <div class="cr-text" id="cr-text"></div>
+          <div class="cr-num" id="cr-num"></div>
+        </div>
+        <div class="carousel-nav">
+          <button onclick="carouselPrev()" title="上一則">◀</button>
+          <button onclick="carouselNext()" title="下一則">▶</button>
+        </div>
+        <div class="carousel-dots" id="carousel-dots"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Panel overlay -->
+<div id="panel-overlay" onclick="togglePanel()"></div>
+
+<!-- ═══════════════════ CONTROL PANEL ═══════════════════ -->
+<div id="control-panel">
+  <div class="panel-header">
+    <h3>⚙️ 控制面板</h3>
+    <button class="btn-x" onclick="togglePanel()">✕</button>
+  </div>
+
+  <!-- Question -->
+  <div class="panel-section">
+    <h4>📝 問題設定</h4>
+    <div class="fl">問題文字</div>
+    <textarea id="q-input" rows="3" placeholder="例：你認為家庭支援最重要的面向是什麼？">請分享你的想法</textarea>
+    <div class="fl" style="margin-top:11px;">回應類型</div>
+    <div class="type-toggle">
+      <button class="type-btn active" id="type-text-btn" onclick="setQuestionType('text')">✏️ 自由回應</button>
+      <button class="type-btn" id="type-vote-btn" onclick="setQuestionType('vote')">🗳 投票選擇</button>
+    </div>
+    <div id="options-section" style="display:none; margin-top:11px;">
+      <div class="fl">投票選項</div>
+      <div id="options-list"></div>
+      <button class="btn-add-opt" onclick="addOption()">＋ 新增選項</button>
+    </div>
+    <button class="btn-primary" onclick="applyQuestion()">✓ 套用問題</button>
+  </div>
+
+  <!-- QR & Link -->
+  <div class="panel-section">
+    <h4>🔗 學生連結</h4>
+    <div class="qr-box">
+      <img id="qr-img" src="" alt="QR Code" onerror="this.style.opacity='0.3'">
+      <div class="qr-room" id="qr-room">——</div>
+      <div class="qr-url" id="qr-url"></div>
+    </div>
+    <button class="btn-primary" style="margin-top:10px;" onclick="copyLink()">📋 複製學生連結</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="panel-section">
+    <h4>📊 目前統計</h4>
+    <div class="stat-row">
+      <div class="stat-num" id="stat-count">0</div>
+      <div class="stat-label">則回應</div>
+    </div>
+    <button class="btn-danger" onclick="clearResponses()">🗑 清除所有回應</button>
+  </div>
+
+  <!-- Info -->
+  <div class="panel-section">
+    <h4>ℹ️ 使用說明</h4>
+    <div class="info-box">
+      <strong>📡 目前：本機多分頁示範模式</strong>
+      同學在同一瀏覽器不同分頁可提交，適合示範測試。<br><br>
+      <strong>🌐 跨裝置（真實課堂）</strong>
+      需設定 Firebase。請開啟檔案，在頂端填入 Firebase 資料庫網址。<a href="#" onclick="showFirebaseHelp();return false;">詳細說明 ▶</a>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ STUDENT VIEW ═══════════════════ -->
+<div id="student-view" class="hidden">
+  <div class="student-card">
+    <div class="s-logo">課堂回聲 <em>✦</em> ClassEcho</div>
+
+    <!-- No room -->
+    <div id="no-room" style="display:none;">
+      <div class="setup-card">
+        <h2>加入課堂</h2>
+        <p>請輸入老師提供的 6 位房間代碼</p>
+        <div class="room-row">
+          <input type="text" id="room-join-input" placeholder="ABCD12" maxlength="6">
+          <button class="btn-go" onclick="joinRoom()">加入 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <div id="student-form" style="display:none;">
+      <div class="s-question" id="s-question-text">請分享你的想法</div>
+      <div class="s-field">
+        <label>你的名字</label>
+        <input type="text" id="s-name" placeholder="輸入名字或暱稱">
+      </div>
+      <div class="s-field" id="s-text-field">
+        <label>你的回答</label>
+        <textarea id="s-response" placeholder="在這裡輸入你的想法..." rows="4"></textarea>
+      </div>
+      <div class="s-field" id="s-vote-field" style="display:none;">
+        <label>請選擇你的答案</label>
+        <div class="vote-options" id="vote-options"></div>
+        <input type="hidden" id="s-vote-value">
+      </div>
+      <button class="btn-submit" id="s-submit" onclick="submitResponse()">提交回應 →</button>
+    </div>
+
+    <!-- Success -->
+    <div id="student-success" style="display:none;">
+      <div class="success-state">
+        <em class="s-icon">🎉</em>
+        <h3>回應已送出！</h3>
+        <p>老師的螢幕上已收到你的回應</p>
+        <button class="btn-again" onclick="resetStudentForm()">再次回應</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════
+// ⚙️  CONFIG — 若需跨裝置，請在此填入 Firebase 網址
+// ════════════════════════════════════════════════════
+const FIREBASE_URL = 'https://classecho-v1-default-rtdb.asia-southeast1.firebasedatabase.app/';
+// 範例: const FIREBASE_URL = 'https://my-project-default-rtdb.firebaseio.com';
+
+// ════════════════════════════════════════════════════
+// APP STATE
+// ════════════════════════════════════════════════════
+const App = {
+  isTeacher: false,
+  displayMode: 'wall',
+  roomId: '',
+  question: { text: '請分享你的想法', type: 'text', options: [] },
+  responses: [],
+  carouselIdx: 0,
+  carouselTimer: null,
+  pollTimer: null,
+  channel: null,
+  barChart: null,
+  pieChart: null,
+  useFirebase: false,
+  optCount: 0,
+};
+
+const BUBBLE_COLORS = [
+  { bg:'#FDE8EC', color:'#B83A4A' }, { bg:'#D4EEF8', color:'#2568A0' },
+  { bg:'#D8F3E3', color:'#207A48' }, { bg:'#FDF3D8', color:'#9A6E10' },
+  { bg:'#EAE0F8', color:'#5830A0' }, { bg:'#FFE8D0', color:'#A04820' },
+  { bg:'#D8EDFE', color:'#1848A0' }, { bg:'#F5E8F8', color:'#8030A0' },
+];
+const CARD_ACCENT = ['var(--pink)','var(--primary)','var(--mint)','var(--lavender)','var(--peach)','var(--sky)'];
+const CHART_COLORS = ['#5E97C0','#F2A5B2','#8ECF9E','#F5D58A','#B8A9E8','#F5BE9A','#A5D4F0'];
+
+// ════════════════════════════════════════════════════
+// STORAGE LAYER (Firebase REST or BroadcastChannel)
+// ════════════════════════════════════════════════════
+const Store = {
+  async save(roomId, response) {
+    const entry = { ...response, ts: Date.now(), id: Math.random().toString(36).slice(2,10) };
+    if (App.useFirebase) {
+      await fetch(`${FIREBASE_URL}/rooms/${roomId}/responses.json`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+    } else {
+      const key = `ce_${roomId}_data`;
+      const arr = JSON.parse(localStorage.getItem(key) || '[]');
+      arr.push(entry);
+      localStorage.setItem(key, JSON.stringify(arr));
+      App.channel?.postMessage({ type: 'NEW', roomId });
+    }
+  },
+
+  async load(roomId) {
+    if (App.useFirebase) {
+      const r = await fetch(`${FIREBASE_URL}/rooms/${roomId}/responses.json`);
+      const data = await r.json();
+      if (!data || typeof data !== 'object') return [];
+      return Object.values(data).sort((a, b) => a.ts - b.ts);
+    } else {
+      return JSON.parse(localStorage.getItem(`ce_${roomId}_data`) || '[]');
+    }
+  },
+
+  async saveQuestion(roomId, q) {
+    if (App.useFirebase) {
+      await fetch(`${FIREBASE_URL}/rooms/${roomId}/question.json`, {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(q)
+      });
+    } else {
+      localStorage.setItem(`ce_${roomId}_q`, JSON.stringify(q));
+      App.channel?.postMessage({ type: 'QUESTION', roomId });
+    }
+  },
+
+  async loadQuestion(roomId) {
+    if (App.useFirebase) {
+      const r = await fetch(`${FIREBASE_URL}/rooms/${roomId}/question.json`);
+      return await r.json();
+    } else {
+      return JSON.parse(localStorage.getItem(`ce_${roomId}_q`) || 'null');
+    }
+  },
+
+  async clear(roomId) {
+    if (App.useFirebase) {
+      await fetch(`${FIREBASE_URL}/rooms/${roomId}/responses.json`, { method: 'DELETE' });
+    } else {
+      localStorage.removeItem(`ce_${roomId}_data`);
+      App.channel?.postMessage({ type: 'CLEAR', roomId });
+    }
+  }
+};
+
+// ════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════
+function genRoomId() {
+  return Math.random().toString(36).toUpperCase().slice(2, 8);
+}
+function getStudentUrl(roomId) {
+  const u = new URL(window.location.href);
+  u.search = '';
+  u.searchParams.set('student', '1');
+  u.searchParams.set('room', roomId);
+  return u.toString();
+}
+function showToast(msg, ms = 2600) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), ms);
+}
+function showFirebaseHelp() {
+  alert(
+    '【跨裝置 Firebase 設定說明】\n\n' +
+    '步驟 1：前往 console.firebase.google.com\n' +
+    '步驟 2：建立新專案（免費 Spark 方案）\n' +
+    '步驟 3：新增 Realtime Database，選「測試模式」\n' +
+    '步驟 4：複製資料庫 URL，格式如：\n   https://my-project-default-rtdb.firebaseio.com\n\n' +
+    '步驟 5：開啟 classecho.html，找到頂端：\n   const FIREBASE_URL = \'\'\n   填入 URL 後存檔\n\n' +
+    '完成後即可讓教室所有裝置即時同步！'
+  );
+}
+function copyLink() {
+  const url = getStudentUrl(App.roomId);
+  navigator.clipboard.writeText(url).then(() => showToast('✓ 已複製學生連結'));
+}
+
+// ════════════════════════════════════════════════════
+// TEACHER: INIT
+// ════════════════════════════════════════════════════
+async function initTeacher() {
+  App.isTeacher = true;
+  App.useFirebase = !!FIREBASE_URL;
+
+  // Room ID
+  App.roomId = sessionStorage.getItem('ce_room') || genRoomId();
+  sessionStorage.setItem('ce_room', App.roomId);
+
+  // Local mode: BroadcastChannel
+  if (!App.useFirebase) {
+    App.channel = new BroadcastChannel('classecho_' + App.roomId);
+    App.channel.onmessage = () => pollResponses();
+  }
+
+  updateQR();
+
+  // Load saved question
+  try {
+    const saved = await Store.loadQuestion(App.roomId);
+    if (saved && saved.text) {
+      App.question = saved;
+      document.getElementById('q-input').value = saved.text;
+      setQuestionType(saved.type, false);
+      if (saved.type === 'vote' && saved.options?.length) {
+        saved.options.forEach(o => addOption(o));
+      }
+    }
+  } catch(e) {}
+
+  updateQuestionDisplay();
+  await pollResponses();
+  App.pollTimer = setInterval(pollResponses, 2200);
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('teacher-view').classList.remove('hidden');
+}
+
+function updateQR() {
+  const url = getStudentUrl(App.roomId);
+  document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&bgcolor=FFFCF9&color=5E97C0&data=${encodeURIComponent(url)}`;
+  document.getElementById('qr-room').textContent = App.roomId;
+  const short = url.length > 58 ? url.slice(0, 58) + '…' : url;
+  document.getElementById('qr-url').textContent = short;
+}
+
+async function pollResponses() {
+  try {
+    const fresh = await Store.load(App.roomId);
+    if (JSON.stringify(fresh) !== JSON.stringify(App.responses)) {
+      App.responses = fresh;
+      renderCurrentMode();
+      updateStats();
+    }
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════
+// TEACHER: QUESTION
+// ════════════════════════════════════════════════════
+function setQuestionType(type, resetOpts = true) {
+  App.question.type = type;
+  document.getElementById('type-text-btn').classList.toggle('active', type === 'text');
+  document.getElementById('type-vote-btn').classList.toggle('active', type === 'vote');
+  document.getElementById('options-section').style.display = type === 'vote' ? 'block' : 'none';
+  if (resetOpts && type === 'vote' && document.getElementById('options-list').children.length === 0) {
+    addOption('選項 A'); addOption('選項 B'); addOption('選項 C');
+  }
+}
+
+function addOption(val = '') {
+  const id = 'op_' + (App.optCount++);
+  const row = document.createElement('div');
+  row.className = 'opt-row';
+  row.innerHTML = `<input type="text" value="${val.replace(/"/g,'&quot;')}" placeholder="選項文字" id="${id}"><button class="btn-del-opt" onclick="this.parentElement.remove()" title="刪除">✕</button>`;
+  document.getElementById('options-list').appendChild(row);
+}
+
+async function applyQuestion() {
+  const text = (document.getElementById('q-input').value.trim()) || '請分享你的想法';
+  const type = App.question.type;
+  const options = type === 'vote'
+    ? Array.from(document.querySelectorAll('#options-list input')).map(i => i.value.trim()).filter(Boolean)
+    : [];
+  App.question = { text, type, options };
+  try { await Store.saveQuestion(App.roomId, App.question); } catch(e) {}
+  updateQuestionDisplay();
+  showToast('✓ 問題已套用，學生端同步更新');
+  togglePanel();
+}
+
+function updateQuestionDisplay() {
+  document.getElementById('q-text-display').textContent = App.question.text;
+  document.getElementById('s-question-text').textContent = App.question.text;
+  const isVote = App.question.type === 'vote';
+  document.getElementById('s-text-field').style.display = isVote ? 'none' : 'block';
+  document.getElementById('s-vote-field').style.display = isVote ? 'block' : 'none';
+  if (isVote) {
+    const container = document.getElementById('vote-options');
+    container.innerHTML = '';
+    App.question.options.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'vote-btn'; btn.textContent = opt;
+      btn.onclick = () => {
+        container.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('s-vote-value').value = opt;
+      };
+      container.appendChild(btn);
+    });
+  }
+}
+
+async function clearResponses() {
+  if (!confirm('確定清除所有回應？清除後無法復原。')) return;
+  try {
+    await Store.clear(App.roomId);
+    App.responses = [];
+    // Clear rendered content
+    const wall = document.getElementById('mode-wall');
+    wall.querySelectorAll('.bubble').forEach(b => b.remove());
+    document.getElementById('mode-cards').innerHTML = '';
+    renderCurrentMode();
+    updateStats();
+    showToast('🗑 已清除所有回應');
+  } catch(e) { showToast('清除失敗，請再試一次'); }
+}
+
+function updateStats() {
+  const n = App.responses.length;
+  document.getElementById('resp-count').textContent = `${n} 則回應`;
+  document.getElementById('stat-count').textContent = n;
+}
+
+// ════════════════════════════════════════════════════
+// TEACHER: DISPLAY MODES
+// ════════════════════════════════════════════════════
+function setMode(mode) {
+  App.displayMode = mode;
+  const labels = ['wall','chart','cards','carousel'];
+  document.querySelectorAll('.mode-tab').forEach((t, i) => t.classList.toggle('active', labels[i] === mode));
+  document.querySelectorAll('.display-mode').forEach(el => el.classList.add('hidden'));
+  document.getElementById('mode-' + mode).classList.remove('hidden');
+  if (App.carouselTimer) { clearInterval(App.carouselTimer); App.carouselTimer = null; }
+  renderCurrentMode();
+}
+
+function renderCurrentMode() {
+  if (App.displayMode === 'wall') renderWall();
+  else if (App.displayMode === 'chart') renderChart();
+  else if (App.displayMode === 'cards') renderCards();
+  else if (App.displayMode === 'carousel') renderCarousel();
+}
+
+/* — Word Wall — */
+function renderWall() {
+  const container = document.getElementById('mode-wall');
+  const empty = document.getElementById('wall-empty');
+  if (App.responses.length === 0) { empty.style.display = 'flex'; return; }
+  empty.style.display = 'none';
+  const existing = new Set(Array.from(container.querySelectorAll('.bubble')).map(b => b.dataset.id));
+  App.responses.forEach((r, i) => {
+    if (existing.has(r.id)) return;
+    const c = BUBBLE_COLORS[i % BUBBLE_COLORS.length];
+    const el = document.createElement('div');
+    el.className = 'bubble'; el.dataset.id = r.id;
+    el.style.cssText = `background:${c.bg};color:${c.color};animation-delay:${Math.min(i * 0.04, 0.4)}s`;
+    el.innerHTML = `${escHtml(r.text || r.vote)}<span class="b-name">${escHtml(r.name)}</span>`;
+    container.appendChild(el);
+  });
+}
+
+/* — Chart — */
+function renderChart() {
+  const empty = document.getElementById('chart-empty');
+  const content = document.getElementById('chart-content');
+  if (App.responses.length === 0 || App.question.type !== 'vote') {
+    empty.style.display = 'flex'; content.style.display = 'none'; return;
+  }
+  empty.style.display = 'none'; content.style.display = 'flex';
+  const counts = {};
+  App.question.options.forEach(o => counts[o] = 0);
+  App.responses.forEach(r => { if (r.vote && counts[r.vote] !== undefined) counts[r.vote]++; });
+  const labels = Object.keys(counts);
+  const data = Object.values(counts);
+  const colors = CHART_COLORS.slice(0, labels.length);
+  const cfg = { labels, datasets: [{ data, backgroundColor: colors, borderWidth: 0, borderRadius: 8 }] };
+  if (App.barChart) { App.barChart.data = cfg; App.barChart.update(); }
+  else App.barChart = new Chart(document.getElementById('barChartEl'), {
+    type: 'bar', data: cfg,
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+  });
+  if (App.pieChart) { App.pieChart.data = cfg; App.pieChart.update(); }
+  else App.pieChart = new Chart(document.getElementById('pieChartEl'), {
+    type: 'doughnut', data: cfg,
+    options: { responsive: true, plugins: { legend: { position: 'bottom' } }, cutout: '50%' }
+  });
+}
+
+/* — Cards — */
+function renderCards() {
+  const container = document.getElementById('mode-cards');
+  if (App.responses.length === 0) {
+    container.innerHTML = `<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;opacity:0.4;"><div style="font-size:3rem">🗂</div><p style="font-weight:700;color:var(--text-muted)">等待回應中...</p></div>`;
+    return;
+  }
+  const existing = new Set(Array.from(container.querySelectorAll('.resp-card')).map(c => c.dataset.id));
+  App.responses.forEach((r, i) => {
+    if (existing.has(r.id)) return;
+    const card = document.createElement('div');
+    card.className = 'resp-card'; card.dataset.id = r.id;
+    const accent = CARD_ACCENT[i % CARD_ACCENT.length];
+    card.style.cssText = `border-left-color:${accent};animation-delay:${Math.min(i * 0.04, 0.4)}s`;
+    card.innerHTML = `<div class="c-name" style="color:${accent}">${escHtml(r.name)}</div><div class="c-text">${escHtml(r.text || r.vote)}</div>`;
+    container.appendChild(card);
+  });
+}
+
+/* — Carousel — */
+function renderCarousel() {
+  const empty = document.getElementById('carousel-empty');
+  const content = document.getElementById('carousel-content');
+  if (App.responses.length === 0) {
+    empty.style.display = 'flex'; content.style.display = 'none';
+    if (App.carouselTimer) { clearInterval(App.carouselTimer); App.carouselTimer = null; }
+    return;
+  }
+  empty.style.display = 'none'; content.style.display = 'flex';
+  App.carouselIdx = Math.min(App.carouselIdx, App.responses.length - 1);
+  showCarouselItem(App.carouselIdx);
+  buildDots();
+  if (!App.carouselTimer) {
+    App.carouselTimer = setInterval(() => { carouselNext(); }, 5000);
+  }
+}
+
+function showCarouselItem(idx) {
+  const r = App.responses[idx];
+  if (!r) return;
+  const card = document.getElementById('carousel-card');
+  card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
+  document.getElementById('cr-name').textContent = r.name;
+  document.getElementById('cr-text').textContent = r.text || r.vote;
+  document.getElementById('cr-num').textContent = `${idx + 1} / ${App.responses.length}`;
+}
+
+function buildDots() {
+  const dots = document.getElementById('carousel-dots');
+  dots.innerHTML = App.responses.map((_, i) =>
+    `<div class="c-dot ${i === App.carouselIdx ? 'active' : ''}" onclick="jumpCarousel(${i})"></div>`
+  ).join('');
+}
+
+function carouselNext() {
+  if (!App.responses.length) return;
+  App.carouselIdx = (App.carouselIdx + 1) % App.responses.length;
+  showCarouselItem(App.carouselIdx); buildDots(); resetCarouselTimer();
+}
+function carouselPrev() {
+  if (!App.responses.length) return;
+  App.carouselIdx = (App.carouselIdx - 1 + App.responses.length) % App.responses.length;
+  showCarouselItem(App.carouselIdx); buildDots(); resetCarouselTimer();
+}
+function jumpCarousel(i) {
+  App.carouselIdx = i; showCarouselItem(i); buildDots(); resetCarouselTimer();
+}
+function resetCarouselTimer() {
+  if (App.carouselTimer) clearInterval(App.carouselTimer);
+  App.carouselTimer = setInterval(carouselNext, 5000);
+}
+
+// ════════════════════════════════════════════════════
+// TEACHER: PANEL
+// ════════════════════════════════════════════════════
+function togglePanel() {
+  const panel = document.getElementById('control-panel');
+  const overlay = document.getElementById('panel-overlay');
+  const btn = document.getElementById('panel-toggle-btn');
+  const willOpen = !panel.classList.contains('open');
+  panel.classList.toggle('open', willOpen);
+  overlay.classList.toggle('open', willOpen);
+  btn.classList.toggle('open', willOpen);
+}
+
+// ════════════════════════════════════════════════════
+// STUDENT: INIT
+// ════════════════════════════════════════════════════
+async function initStudent(roomId) {
+  App.isTeacher = false;
+  App.useFirebase = !!FIREBASE_URL;
+  App.roomId = roomId;
+
+  if (!App.useFirebase) {
+    App.channel = new BroadcastChannel('classecho_' + roomId);
+    App.channel.onmessage = async (ev) => {
+      if (ev.data?.type === 'QUESTION') {
+        const q = await Store.loadQuestion(roomId);
+        if (q) { App.question = q; updateQuestionDisplay(); }
+      }
+    };
+  }
+
+  try {
+    const q = await Store.loadQuestion(roomId);
+    if (q && q.text) { App.question = q; }
+  } catch(e) {}
+
+  updateQuestionDisplay();
+
+  App.pollTimer = setInterval(async () => {
+    try {
+      const q2 = await Store.loadQuestion(roomId);
+      if (q2 && q2.text !== App.question.text) { App.question = q2; updateQuestionDisplay(); }
+    } catch(e) {}
+  }, 3500);
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('student-view').classList.remove('hidden');
+  document.getElementById('no-room').style.display = 'none';
+  document.getElementById('student-form').style.display = 'block';
+  document.getElementById('student-success').style.display = 'none';
+}
+
+function joinRoom() {
+  const code = document.getElementById('room-join-input').value.trim().toUpperCase();
+  if (code.length < 4) { showToast('請輸入有效的房間代碼'); return; }
+  initStudent(code);
+}
+
+// ════════════════════════════════════════════════════
+// STUDENT: SUBMIT
+// ════════════════════════════════════════════════════
+async function submitResponse() {
+  const name = document.getElementById('s-name').value.trim() || '匿名同學';
+  const btn = document.getElementById('s-submit');
+  let response;
+  if (App.question.type === 'vote') {
+    const vote = document.getElementById('s-vote-value').value;
+    if (!vote) { showToast('請先選擇一個選項'); return; }
+    response = { name, vote };
+  } else {
+    const text = document.getElementById('s-response').value.trim();
+    if (!text) { showToast('請輸入你的回答'); return; }
+    response = { name, text };
+  }
+  btn.disabled = true; btn.textContent = '傳送中...';
+  try {
+    await Store.save(App.roomId, response);
+    document.getElementById('student-form').style.display = 'none';
+    document.getElementById('student-success').style.display = 'block';
+  } catch(e) {
+    showToast('提交失敗，請再試一次');
+    btn.disabled = false; btn.textContent = '提交回應 →';
+  }
+}
+
+function resetStudentForm() {
+  document.getElementById('s-name').value = '';
+  document.getElementById('s-response').value = '';
+  document.getElementById('s-vote-value').value = '';
+  document.querySelectorAll('.vote-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('s-submit').disabled = false;
+  document.getElementById('s-submit').textContent = '提交回應 →';
+  document.getElementById('student-form').style.display = 'block';
+  document.getElementById('student-success').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════
+// ROUTER
+// ════════════════════════════════════════════════════
+async function init() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('student')) {
+    const roomId = params.get('room');
+    if (roomId) {
+      await initStudent(roomId);
+    } else {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('student-view').classList.remove('hidden');
+      document.getElementById('no-room').style.display = 'block';
+      document.getElementById('student-form').style.display = 'none';
+    }
+  } else {
+    await initTeacher();
+  }
+}
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>
