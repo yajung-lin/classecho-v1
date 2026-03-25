@@ -377,6 +377,12 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
       <div class="qr-room" id="qr-room">——</div>
       <div class="qr-url" id="qr-url"></div>
     </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+      <label style="font-weight:700;font-size:0.78rem;color:var(--text-muted);white-space:nowrap;">QR 顏色</label>
+      <input type="color" id="qr-color-dark" value="#000000" title="QR碼顏色" style="width:36px;height:30px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px;" oninput="updateQR()">
+      <label style="font-weight:700;font-size:0.78rem;color:var(--text-muted);white-space:nowrap;">底色</label>
+      <input type="color" id="qr-color-light" value="#ffffff" title="背景顏色" style="width:36px;height:30px;border-radius:6px;border:1px solid var(--border);cursor:pointer;padding:2px;" oninput="updateQR()">
+    </div>
     <button class="btn-primary" style="margin-top:10px;" onclick="copyLink()">📋 複製學生連結</button>
   </div>
 
@@ -595,9 +601,9 @@ async function initTeacher() {
   App.isTeacher = true;
   App.useFirebase = !!FIREBASE_URL;
 
-  // Room ID
-  App.roomId = sessionStorage.getItem('ce_room') || genRoomId();
-  sessionStorage.setItem('ce_room', App.roomId);
+  // Room ID — 固定代碼，可自行修改下面的 FIXED_ROOM
+  const FIXED_ROOM = 'YAJUNG';
+  App.roomId = FIXED_ROOM;
 
   // Local mode: BroadcastChannel
   if (!App.useFirebase) {
@@ -631,13 +637,15 @@ async function initTeacher() {
 function updateQR() {
   const url = getStudentUrl(App.roomId);
   const qrContainer = document.getElementById('qr-img');
+  const darkColor = document.getElementById('qr-color-dark')?.value || '#000000';
+  const lightColor = document.getElementById('qr-color-light')?.value || '#ffffff';
   qrContainer.innerHTML = '';
   new QRCode(qrContainer, {
     text: url,
     width: 180,
     height: 180,
-    colorDark: '#000000',
-    colorLight: '#ffffff',
+    colorDark: darkColor,
+    colorLight: lightColor,
     correctLevel: QRCode.CorrectLevel.H
   });
   document.getElementById('qr-room').textContent = App.roomId;
