@@ -458,7 +458,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 // ════════════════════════════════════════════════════
 // ⚙️  CONFIG — 若需跨裝置，請在此填入 Firebase 網址
 // ════════════════════════════════════════════════════
-const FIREBASE_URL = 'https://classecho-v1-default-rtdb.asia-southeast1.firebasedatabase.app/';
+const FIREBASE_URL = '';
 // 範例: const FIREBASE_URL = 'https://my-project-default-rtdb.firebaseio.com';
 
 // ════════════════════════════════════════════════════
@@ -629,7 +629,7 @@ async function initTeacher() {
 
 function updateQR() {
   const url = getStudentUrl(App.roomId);
-  document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&bgcolor=FFFCF9&color=5E97C0&data=${encodeURIComponent(url)}`;
+  document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&bgcolor=FFFFFF&color=1A1A1A&data=${encodeURIComponent(url)}`;
   document.getElementById('qr-room').textContent = App.roomId;
   const short = url.length > 58 ? url.slice(0, 58) + '…' : url;
   document.getElementById('qr-url').textContent = short;
