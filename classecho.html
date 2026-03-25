@@ -373,7 +373,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
   <div class="panel-section">
     <h4>🔗 學生連結</h4>
     <div class="qr-box">
-      <img id="qr-img" src="" alt="QR Code" onerror="this.style.opacity='0.3'">
+      <div id="qr-img" style="width:180px;height:180px;margin:0 auto;"></div>
       <div class="qr-room" id="qr-room">——</div>
       <div class="qr-url" id="qr-url"></div>
     </div>
@@ -454,6 +454,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
 // ════════════════════════════════════════════════════
 // ⚙️  CONFIG — 若需跨裝置，請在此填入 Firebase 網址
@@ -629,7 +630,16 @@ async function initTeacher() {
 
 function updateQR() {
   const url = getStudentUrl(App.roomId);
-  document.getElementById('qr-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&bgcolor=ffffff&color=000000&qzone=1&data=${encodeURIComponent(url)}&_=${Date.now()}`;
+  const qrContainer = document.getElementById('qr-img');
+  qrContainer.innerHTML = '';
+  new QRCode(qrContainer, {
+    text: url,
+    width: 180,
+    height: 180,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
   document.getElementById('qr-room').textContent = App.roomId;
   const short = url.length > 58 ? url.slice(0, 58) + '…' : url;
   document.getElementById('qr-url').textContent = short;
