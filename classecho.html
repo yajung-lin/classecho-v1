@@ -262,6 +262,60 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
   pointer-events:none; white-space:nowrap; box-shadow:0 4px 20px rgba(0,0,0,0.2);
 }
 .toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── WHITEBOARD ── */
+#mode-whiteboard { background:#fff; position:relative; overflow:hidden; }
+#wb-canvas { position:absolute; inset:0; width:100%; height:calc(100% - 52px); cursor:crosshair; touch-action:none; display:block; }
+.wb-toolbar {
+  position:absolute; bottom:0; left:0; right:0; height:52px;
+  display:flex; align-items:center; gap:7px; padding:0 14px;
+  background:rgba(255,255,255,0.95); border-top:1px solid var(--border); z-index:5;
+}
+.wb-btn { padding:5px 11px; border-radius:50px; border:1.5px solid var(--border); background:var(--bg); cursor:pointer; font-family:inherit; font-weight:700; font-size:0.73rem; transition:all 0.2s; white-space:nowrap; }
+.wb-btn:hover { border-color:var(--primary); color:var(--primary); }
+.wb-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+.wb-sep { width:1px; height:20px; background:var(--border); flex-shrink:0; }
+.wb-color { width:30px; height:30px; border-radius:50%; border:2px solid var(--border); cursor:pointer; padding:0; flex-shrink:0; }
+.wb-swatch { width:22px; height:22px; border-radius:50%; cursor:pointer; border:2px solid transparent; flex-shrink:0; transition:all 0.15s; }
+.wb-swatch:hover, .wb-swatch.sel { border-color:var(--text); transform:scale(1.2); }
+
+/* ── LOTTERY OVERLAY ── */
+#lottery-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:200; display:none; align-items:center; justify-content:center; flex-direction:column; gap:14px; padding:20px; }
+#lottery-overlay.open { display:flex; }
+.lottery-box { background:var(--surface); border-radius:24px; padding:36px 44px; text-align:center; max-width:560px; width:100%; box-shadow:0 16px 60px rgba(0,0,0,0.3); max-height:82vh; overflow-y:auto; }
+.lot-label { font-size:0.75rem; font-weight:800; color:var(--text-muted); letter-spacing:1px; margin-bottom:12px; text-transform:uppercase; }
+#lot-result { font-size:2.6rem; font-weight:900; color:var(--primary); min-height:3.2rem; transition:color 0.05s; }
+.lot-groups { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+.g-card { background:var(--bg); border-radius:12px; padding:12px 16px; min-width:110px; text-align:left; }
+.g-card h4 { font-size:0.75rem; font-weight:800; color:var(--primary); margin-bottom:6px; }
+.g-member { font-size:0.83rem; padding:2px 0; border-bottom:1px solid var(--border); }
+.g-member:last-child { border-bottom:none; }
+.lot-nav { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:14px; }
+.lot-btn { padding:9px 20px; border-radius:50px; border:none; background:var(--primary); color:white; cursor:pointer; font-family:inherit; font-weight:800; font-size:0.85rem; transition:all 0.2s; }
+.lot-btn:hover { background:var(--primary-d); transform:translateY(-1px); }
+.lot-ghost { background:transparent !important; color:var(--text-muted) !important; border:1.5px solid var(--border) !important; transform:none !important; }
+.lot-ghost:hover { background:var(--bg) !important; }
+
+/* ── QUESTION BANK ── */
+.qb-list { max-height:190px; overflow-y:auto; margin-bottom:8px; }
+.qb-item { display:flex; align-items:flex-start; gap:7px; padding:8px 10px; border-radius:9px; margin-bottom:5px; background:var(--bg); border:1.5px solid transparent; transition:all 0.2s; }
+.qb-item.active { background:var(--primary-light); border-color:var(--primary); }
+.qb-body { flex:1; font-size:0.82rem; line-height:1.5; }
+.qb-tag { font-size:0.6rem; font-weight:800; padding:1px 6px; border-radius:50px; background:var(--primary); color:white; display:inline-block; margin-bottom:3px; }
+.qb-btns { display:flex; gap:3px; flex-shrink:0; margin-top:1px; }
+.qb-btns button { background:none; border:none; cursor:pointer; font-size:0.85rem; color:var(--text-muted); padding:2px 4px; border-radius:4px; transition:all 0.15s; }
+.qb-btns button:hover { color:var(--primary); background:var(--primary-light); }
+.qb-nav { display:flex; gap:6px; margin-top:6px; }
+.qb-nav button { flex:1; }
+
+/* ── ROSTER ── */
+.roster-scroll { max-height:110px; overflow-y:auto; border:1px solid var(--border); border-radius:9px; margin-bottom:8px; }
+.r-item { display:flex; align-items:center; justify-content:space-between; padding:4px 10px; border-bottom:1px solid var(--border); font-size:0.82rem; }
+.r-item:last-child { border-bottom:none; }
+.r-del { background:none; border:none; cursor:pointer; color:var(--text-muted); font-size:0.85rem; transition:color 0.2s; }
+.r-del:hover { color:#E05A6A; }
+.grp-row { display:flex; gap:7px; align-items:center; margin-top:6px; }
+.grp-row input[type=number] { width:54px; text-align:center; padding:7px; }
 </style>
 </head>
 <body>
@@ -282,6 +336,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
       <button class="mode-tab" onclick="setMode('chart')">📊 圖表</button>
       <button class="mode-tab" onclick="setMode('cards')">🗂 回應卡</button>
       <button class="mode-tab" onclick="setMode('carousel')">🎠 輪播</button>
+      <button class="mode-tab" onclick="setMode('whiteboard')">✏️ 白板</button>
     </div>
     <button class="btn-control" id="panel-toggle-btn" onclick="togglePanel()">⚙️ 控制面板</button>
   </header>
@@ -338,10 +393,39 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
         <div class="carousel-dots" id="carousel-dots"></div>
       </div>
     </div>
+    <!-- Whiteboard -->
+    <div id="mode-whiteboard" class="display-mode hidden">
+      <canvas id="wb-canvas"></canvas>
+      <div class="wb-toolbar">
+        <button class="wb-btn active" id="wb-pen-btn" onclick="wbSetTool('pen')">🖊 畫筆</button>
+        <button class="wb-btn" id="wb-eraser-btn" onclick="wbSetTool('eraser')">⬜ 橡皮擦</button>
+        <div class="wb-sep"></div>
+        <div id="wb-swatches" style="display:flex;gap:5px;align-items:center;"></div>
+        <input type="color" id="wb-custom-color" class="wb-color" value="#2D2A28" title="自訂顏色" oninput="wbSetColor(this.value)">
+        <div class="wb-sep"></div>
+        <label style="font-size:0.73rem;font-weight:700;color:var(--text-muted);white-space:nowrap;">粗細</label>
+        <input type="range" id="wb-size" min="1" max="40" value="4" style="width:70px;" oninput="wbSetSize(this.value)">
+        <span id="wb-size-label" style="font-size:0.73rem;font-weight:700;min-width:20px;">4</span>
+        <div class="wb-sep"></div>
+        <button class="wb-btn" onclick="wbClear()">🗑 清除</button>
+        <button class="wb-btn" onclick="wbSave()">💾 儲存圖片</button>
+      </div>
+    </div>
   </main>
 </div>
 
-<!-- Panel overlay -->
+<!-- Lottery overlay -->
+<div id="lottery-overlay">
+  <div class="lottery-box">
+    <div class="lot-label" id="lot-label">抽籤結果</div>
+    <div id="lot-result">—</div>
+    <div id="lot-groups" class="lot-groups" style="display:none;margin-top:16px;"></div>
+  </div>
+  <div class="lot-nav">
+    <button class="lot-btn" onclick="runLottery()">🎲 再抽一次</button>
+    <button class="lot-btn lot-ghost" onclick="closeLottery()">✕ 關閉</button>
+  </div>
+</div>
 <div id="panel-overlay" onclick="togglePanel()"></div>
 
 <!-- ═══════════════════ CONTROL PANEL ═══════════════════ -->
@@ -349,6 +433,49 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
   <div class="panel-header">
     <h3>⚙️ 控制面板</h3>
     <button class="btn-x" onclick="togglePanel()">✕</button>
+  </div>
+
+  <!-- Question Bank -->
+  <div class="panel-section">
+    <h4>📚 題庫管理</h4>
+    <div class="qb-list" id="qb-list"></div>
+    <div class="fl">新增題目</div>
+    <textarea id="qb-input" rows="2" placeholder="輸入題目文字..."></textarea>
+    <div class="type-toggle" style="margin-top:7px;">
+      <button class="type-btn active" id="qb-type-text" onclick="qbSetType('text')">✏️ 自由回應</button>
+      <button class="type-btn" id="qb-type-vote" onclick="qbSetType('vote')">🗳 投票</button>
+    </div>
+    <div id="qb-opts-section" style="display:none;margin-top:8px;">
+      <div id="qb-opts-list"></div>
+      <button class="btn-add-opt" onclick="qbAddOpt()">＋ 新增選項</button>
+    </div>
+    <button class="btn-primary" onclick="qbAdd()">＋ 加入題庫</button>
+    <div class="qb-nav">
+      <button class="btn-control" style="flex:1;" onclick="qbPrev()">◀ 上一題</button>
+      <button class="btn-control" style="flex:1;" onclick="qbNext()">下一題 ▶</button>
+    </div>
+  </div>
+
+  <!-- Roster -->
+  <div class="panel-section">
+    <h4>👥 名單管理</h4>
+    <div class="roster-scroll" id="roster-list"></div>
+    <div class="fl">貼上名單（每行一位）</div>
+    <textarea id="roster-input" rows="3" placeholder="王小明&#10;李小花&#10;張大偉"></textarea>
+    <button class="btn-primary" onclick="rosterImport()">匯入名單</button>
+    <div style="margin-top:6px;">
+      <button class="btn-control" style="width:100%;justify-content:center;margin-bottom:6px;" onclick="openLottery()">🎲 隨機抽籤</button>
+      <div class="grp-row">
+        <input type="number" id="grp-count" value="3" min="2" max="20" style="width:54px;padding:7px;border:1.5px solid var(--border);border-radius:9px;">
+        <span style="font-size:0.82rem;color:var(--text-muted);">組</span>
+        <button class="btn-control" style="flex:1;justify-content:center;" onclick="openGrouping()">👥 隨機分組</button>
+      </div>
+    </div>
+    <div style="margin-top:6px;">
+      <label style="font-size:0.75rem;font-weight:700;color:var(--text-muted);">或上傳 Excel 檔案</label>
+      <input type="file" id="excel-file" accept=".xlsx,.xls,.csv" style="display:none;" onchange="rosterFromExcel(this)">
+      <button class="btn-control" style="width:100%;justify-content:center;margin-top:5px;" onclick="document.getElementById('excel-file').click()">📂 上傳 Excel/CSV</button>
+    </div>
   </div>
 
   <!-- Question -->
@@ -461,6 +588,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // ════════════════════════════════════════════════════
 // ⚙️  CONFIG — 若需跨裝置，請在此填入 Firebase 網址
@@ -632,6 +760,8 @@ async function initTeacher() {
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('teacher-view').classList.remove('hidden');
+  qbLoad();
+  rosterLoad();
 }
 
 function updateQR() {
@@ -746,11 +876,12 @@ function updateStats() {
 // ════════════════════════════════════════════════════
 function setMode(mode) {
   App.displayMode = mode;
-  const labels = ['wall','chart','cards','carousel'];
+  const labels = ['wall','chart','cards','carousel','whiteboard'];
   document.querySelectorAll('.mode-tab').forEach((t, i) => t.classList.toggle('active', labels[i] === mode));
   document.querySelectorAll('.display-mode').forEach(el => el.classList.add('hidden'));
   document.getElementById('mode-' + mode).classList.remove('hidden');
   if (App.carouselTimer) { clearInterval(App.carouselTimer); App.carouselTimer = null; }
+  if (mode === 'whiteboard') { setTimeout(wbInit, 50); return; }
   renderCurrentMode();
 }
 
@@ -979,6 +1110,286 @@ function resetStudentForm() {
 // ════════════════════════════════════════════════════
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════
+// ✏️ WHITEBOARD
+// ════════════════════════════════════════════════════
+const WB = { tool:'pen', color:'#2D2A28', size:4, drawing:false, lastX:0, lastY:0 };
+const WB_SWATCHES = ['#2D2A28','#E05A6A','#5E97C0','#3DAA6A','#F5A623','#9B59B6','#FFFFFF'];
+
+function wbInit() {
+  const canvas = document.getElementById('wb-canvas');
+  if (!canvas) return;
+  const container = document.getElementById('mode-whiteboard');
+  canvas.width = container.offsetWidth;
+  canvas.height = container.offsetHeight - 52;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Build swatches
+  const sw = document.getElementById('wb-swatches');
+  sw.innerHTML = '';
+  WB_SWATCHES.forEach(c => {
+    const d = document.createElement('div');
+    d.className = 'wb-swatch' + (c === WB.color ? ' sel' : '');
+    d.style.background = c;
+    d.style.border = c === '#FFFFFF' ? '2px solid #ccc' : '2px solid transparent';
+    d.onclick = () => { wbSetColor(c); sw.querySelectorAll('.wb-swatch').forEach(s=>s.classList.remove('sel')); d.classList.add('sel'); };
+    sw.appendChild(d);
+  });
+
+  function pos(e) {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return [t.clientX - r.left, t.clientY - r.top];
+  }
+  function start(e) {
+    e.preventDefault();
+    WB.drawing = true;
+    [WB.lastX, WB.lastY] = pos(e);
+    ctx.beginPath();
+    ctx.arc(WB.lastX, WB.lastY, (WB.tool==='eraser'?WB.size*3:WB.size)/2, 0, Math.PI*2);
+    ctx.fillStyle = WB.tool==='eraser' ? '#ffffff' : WB.color;
+    ctx.fill();
+  }
+  function move(e) {
+    e.preventDefault();
+    if (!WB.drawing) return;
+    const [x, y] = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(WB.lastX, WB.lastY);
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = WB.tool==='eraser' ? '#ffffff' : WB.color;
+    ctx.lineWidth = WB.tool==='eraser' ? WB.size*3 : WB.size;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+    [WB.lastX, WB.lastY] = [x, y];
+  }
+  function end() { WB.drawing = false; }
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  canvas.addEventListener('mouseup', end);
+  canvas.addEventListener('mouseleave', end);
+  canvas.addEventListener('touchstart', start, {passive:false});
+  canvas.addEventListener('touchmove', move, {passive:false});
+  canvas.addEventListener('touchend', end);
+}
+
+function wbSetTool(t) {
+  WB.tool = t;
+  document.getElementById('wb-pen-btn').classList.toggle('active', t==='pen');
+  document.getElementById('wb-eraser-btn').classList.toggle('active', t==='eraser');
+  document.getElementById('wb-canvas').style.cursor = t==='eraser' ? 'cell' : 'crosshair';
+}
+function wbSetColor(c) { WB.color = c; WB.tool = 'pen'; wbSetTool('pen'); }
+function wbSetSize(v) { WB.size = parseInt(v); document.getElementById('wb-size-label').textContent = v; }
+function wbClear() {
+  const c = document.getElementById('wb-canvas');
+  c.getContext('2d').fillStyle = '#fff';
+  c.getContext('2d').fillRect(0, 0, c.width, c.height);
+}
+function wbSave() {
+  const a = document.createElement('a');
+  a.download = 'classecho-whiteboard.png';
+  a.href = document.getElementById('wb-canvas').toDataURL();
+  a.click();
+}
+
+// ════════════════════════════════════════════════════
+// 📚 QUESTION BANK
+// ════════════════════════════════════════════════════
+let QB = { list: [], idx: -1, type: 'text', optCount: 0 };
+
+function qbLoad() {
+  QB.list = JSON.parse(localStorage.getItem('ce_qbank') || '[]');
+  renderQBList();
+}
+function qbSave() { localStorage.setItem('ce_qbank', JSON.stringify(QB.list)); }
+
+function qbSetType(t) {
+  QB.type = t;
+  document.getElementById('qb-type-text').classList.toggle('active', t==='text');
+  document.getElementById('qb-type-vote').classList.toggle('active', t==='vote');
+  document.getElementById('qb-opts-section').style.display = t==='vote' ? 'block' : 'none';
+  if (t==='vote' && document.getElementById('qb-opts-list').children.length===0) {
+    qbAddOpt('選項 A'); qbAddOpt('選項 B');
+  }
+}
+
+function qbAddOpt(val='') {
+  const id = 'qbo_'+(QB.optCount++);
+  const row = document.createElement('div');
+  row.className = 'opt-row';
+  row.innerHTML = `<input type="text" value="${val.replace(/"/g,'&quot;')}" placeholder="選項文字" id="${id}"><button class="btn-del-opt" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('qb-opts-list').appendChild(row);
+}
+
+function qbAdd() {
+  const text = document.getElementById('qb-input').value.trim();
+  if (!text) { showToast('請輸入題目文字'); return; }
+  const opts = QB.type==='vote'
+    ? Array.from(document.querySelectorAll('#qb-opts-list input')).map(i=>i.value.trim()).filter(Boolean)
+    : [];
+  QB.list.push({ text, type: QB.type, options: opts });
+  qbSave();
+  renderQBList();
+  document.getElementById('qb-input').value = '';
+  document.getElementById('qb-opts-list').innerHTML = '';
+  showToast('✓ 題目已加入題庫');
+}
+
+function renderQBList() {
+  const el = document.getElementById('qb-list');
+  if (!QB.list.length) { el.innerHTML = '<div style="text-align:center;padding:12px;font-size:0.8rem;color:var(--text-muted);">題庫是空的</div>'; return; }
+  el.innerHTML = QB.list.map((q,i) => `
+    <div class="qb-item ${i===QB.idx?'active':''}">
+      <div class="qb-body">
+        <span class="qb-tag">${q.type==='vote'?'投票':'自由'}</span><br>
+        ${escHtml(q.text)}
+      </div>
+      <div class="qb-btns">
+        <button onclick="qbPublish(${i})" title="發布此題">▶</button>
+        <button onclick="qbDelete(${i})" title="刪除">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+async function qbPublish(i) {
+  QB.idx = i;
+  const q = QB.list[i];
+  App.question = { text: q.text, type: q.type, options: q.options || [] };
+  document.getElementById('q-input').value = q.text;
+  setQuestionType(q.type, false);
+  try { await Store.saveQuestion(App.roomId, App.question); } catch(e) {}
+  updateQuestionDisplay();
+  renderQBList();
+  showToast(`✓ 已發布：${q.text.slice(0,20)}…`);
+}
+
+function qbDelete(i) {
+  QB.list.splice(i, 1);
+  if (QB.idx >= QB.list.length) QB.idx = QB.list.length - 1;
+  qbSave(); renderQBList();
+}
+
+async function qbNext() {
+  if (!QB.list.length) { showToast('題庫是空的'); return; }
+  QB.idx = (QB.idx + 1) % QB.list.length;
+  await qbPublish(QB.idx);
+}
+
+async function qbPrev() {
+  if (!QB.list.length) { showToast('題庫是空的'); return; }
+  QB.idx = (QB.idx - 1 + QB.list.length) % QB.list.length;
+  await qbPublish(QB.idx);
+}
+
+// ════════════════════════════════════════════════════
+// 👥 ROSTER + LOTTERY + GROUPING
+// ════════════════════════════════════════════════════
+let Roster = [];
+
+function rosterLoad() {
+  Roster = JSON.parse(localStorage.getItem('ce_roster') || '[]');
+  renderRoster();
+}
+function rosterSaveData() { localStorage.setItem('ce_roster', JSON.stringify(Roster)); }
+
+function rosterImport() {
+  const text = document.getElementById('roster-input').value.trim();
+  if (!text) { showToast('請先輸入名單'); return; }
+  const names = text.split('\n').map(s=>s.trim()).filter(Boolean);
+  names.forEach(n => { if (!Roster.includes(n)) Roster.push(n); });
+  rosterSaveData(); renderRoster();
+  document.getElementById('roster-input').value = '';
+  showToast(`✓ 匯入 ${names.length} 位同學`);
+}
+
+function rosterFromExcel(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, {type:'binary'});
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, {header:1});
+      const names = rows.flat().map(v=>String(v).trim()).filter(v=>v && v!=='undefined');
+      names.forEach(n => { if (!Roster.includes(n)) Roster.push(n); });
+      rosterSaveData(); renderRoster();
+      showToast(`✓ 從 Excel 匯入 ${names.length} 位`);
+    } catch(err) { showToast('讀取失敗，請確認格式'); }
+  };
+  reader.readAsBinaryString(file);
+  input.value = '';
+}
+
+function renderRoster() {
+  const el = document.getElementById('roster-list');
+  if (!Roster.length) { el.innerHTML = '<div style="text-align:center;padding:10px;font-size:0.8rem;color:var(--text-muted);">尚無名單</div>'; return; }
+  el.innerHTML = Roster.map((n,i) => `<div class="r-item"><span>${escHtml(n)}</span><button class="r-del" onclick="rosterDel(${i})">✕</button></div>`).join('');
+}
+
+function rosterDel(i) { Roster.splice(i,1); rosterSaveData(); renderRoster(); }
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+let lotTimer = null;
+function openLottery() {
+  if (!Roster.length) { showToast('請先匯入名單'); return; }
+  document.getElementById('lot-label').textContent = '🎲 抽籤';
+  document.getElementById('lot-groups').style.display = 'none';
+  document.getElementById('lot-result').style.display = 'block';
+  document.getElementById('lottery-overlay').classList.add('open');
+  runLottery();
+}
+
+function runLottery() {
+  if (!Roster.length) return;
+  if (lotTimer) clearInterval(lotTimer);
+  let count = 0; const total = 25;
+  document.getElementById('lot-groups').style.display = 'none';
+  document.getElementById('lot-result').style.display = 'block';
+  lotTimer = setInterval(() => {
+    const r = Roster[Math.floor(Math.random()*Roster.length)];
+    document.getElementById('lot-result').textContent = r;
+    count++;
+    if (count >= total) {
+      clearInterval(lotTimer);
+      const winner = Roster[Math.floor(Math.random()*Roster.length)];
+      document.getElementById('lot-result').textContent = winner;
+      document.getElementById('lot-result').style.color = 'var(--pink)';
+      setTimeout(()=>document.getElementById('lot-result').style.color='var(--primary)', 800);
+    }
+  }, count < 15 ? 60 : 120);
+}
+
+function openGrouping() {
+  if (!Roster.length) { showToast('請先匯入名單'); return; }
+  const n = parseInt(document.getElementById('grp-count').value) || 3;
+  const shuffled = shuffle(Roster);
+  const groups = Array.from({length:n}, (_,i) => shuffled.filter((_,j)=>j%n===i));
+  document.getElementById('lot-label').textContent = `👥 分為 ${n} 組`;
+  document.getElementById('lot-result').style.display = 'none';
+  const gc = document.getElementById('lot-groups');
+  gc.style.display = 'flex';
+  gc.innerHTML = groups.map((g,i) => `
+    <div class="g-card">
+      <h4>第 ${i+1} 組</h4>
+      ${g.map(m=>`<div class="g-member">${escHtml(m)}</div>`).join('')}
+    </div>`).join('');
+  document.getElementById('lottery-overlay').classList.add('open');
+}
+
+function closeLottery() {
+  if (lotTimer) clearInterval(lotTimer);
+  document.getElementById('lottery-overlay').classList.remove('open');
 }
 
 // ════════════════════════════════════════════════════
