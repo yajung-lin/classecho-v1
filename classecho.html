@@ -349,21 +349,10 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 
   <main id="display-area">
     <!-- Word Wall -->
-    <div id="mode-wall" class="display-mode">
-      <div class="empty-state" id="wall-empty">
-        <div class="e-icon">💬</div>
-        <p>等待同學回應中...</p>
-        <small>請同學掃描 QR Code 或開啟連結</small>
-      </div>
-    </div>
+    <div id="mode-wall" class="display-mode"></div>
 
     <!-- Chart -->
     <div id="mode-chart" class="display-mode hidden">
-      <div class="empty-state" id="chart-empty">
-        <div class="e-icon">📊</div>
-        <p>等待投票資料...</p>
-        <small>請將問題類型設為「投票選擇」</small>
-      </div>
       <div id="chart-content" style="display:none; width:100%; height:100%; align-items:center; justify-content:center; gap:32px; padding:24px; flex-wrap:wrap;">
         <div class="chart-wrap"><canvas id="barChartEl" width="540" height="360"></canvas></div>
         <div class="chart-wrap"><canvas id="pieChartEl" width="300" height="300"></canvas></div>
@@ -375,11 +364,6 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 
     <!-- Carousel -->
     <div id="mode-carousel" class="display-mode hidden">
-      <div class="empty-state" id="carousel-empty">
-        <div class="e-icon">🎠</div>
-        <p>等待同學回應中...</p>
-        <small>回應將自動輪播顯示</small>
-      </div>
       <div id="carousel-content" style="display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px; height:100%;">
         <div class="carousel-card" id="carousel-card">
           <div class="cr-name" id="cr-name"></div>
@@ -923,9 +907,6 @@ function renderCurrentMode() {
 /* — Word Wall — */
 function renderWall() {
   const container = document.getElementById('mode-wall');
-  const empty = document.getElementById('wall-empty');
-  if (App.responses.length === 0) { empty.style.display = 'flex'; return; }
-  empty.style.display = 'none';
   const existing = new Set(Array.from(container.querySelectorAll('.bubble')).map(b => b.dataset.id));
   App.responses.forEach((r, i) => {
     if (existing.has(r.id)) return;
@@ -940,12 +921,11 @@ function renderWall() {
 
 /* — Chart — */
 function renderChart() {
-  const empty = document.getElementById('chart-empty');
   const content = document.getElementById('chart-content');
   if (App.responses.length === 0 || App.question.type !== 'vote') {
-    empty.style.display = 'flex'; content.style.display = 'none'; return;
+    content.style.display = 'none'; return;
   }
-  empty.style.display = 'none'; content.style.display = 'flex';
+  content.style.display = 'flex';
   const counts = {};
   App.question.options.forEach(o => counts[o] = 0);
   App.responses.forEach(r => { if (r.vote && counts[r.vote] !== undefined) counts[r.vote]++; });
@@ -986,14 +966,13 @@ function renderCards() {
 
 /* — Carousel — */
 function renderCarousel() {
-  const empty = document.getElementById('carousel-empty');
   const content = document.getElementById('carousel-content');
   if (App.responses.length === 0) {
-    empty.style.display = 'flex'; content.style.display = 'none';
+    content.style.display = 'none';
     if (App.carouselTimer) { clearInterval(App.carouselTimer); App.carouselTimer = null; }
     return;
   }
-  empty.style.display = 'none'; content.style.display = 'flex';
+  content.style.display = 'flex';
   App.carouselIdx = Math.min(App.carouselIdx, App.responses.length - 1);
   showCarouselItem(App.carouselIdx);
   buildDots();
