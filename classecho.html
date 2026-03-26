@@ -150,7 +150,8 @@ body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); col
   position:fixed; top:0; right:-390px; width:370px; height:100vh;
   background:var(--surface); box-shadow:-4px 0 30px rgba(0,0,0,0.12);
   z-index:51; transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
-  display:flex; flex-direction:column; overflow-y:auto;
+  display:flex; flex-direction:column; overflow-y:scroll;
+  -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
 }
 #control-panel.open { right:0; }
 .panel-header {
@@ -372,6 +373,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
         </div>
         <div class="carousel-nav">
           <button onclick="carouselPrev()" title="上一則">◀</button>
+          <button onclick="toggleCarouselPause()" id="carousel-pause-btn" title="暫停/播放">⏸</button>
           <button onclick="carouselNext()" title="下一則">▶</button>
         </div>
         <div class="carousel-dots" id="carousel-dots"></div>
@@ -1039,7 +1041,24 @@ function jumpCarousel(i) {
 }
 function resetCarouselTimer() {
   if (App.carouselTimer) clearInterval(App.carouselTimer);
-  App.carouselTimer = setInterval(carouselNext, 5000);
+  if (!App.carouselPaused) {
+    App.carouselTimer = setInterval(carouselNext, 5000);
+  }
+}
+
+function toggleCarouselPause() {
+  App.carouselPaused = !App.carouselPaused;
+  const btn = document.getElementById('carousel-pause-btn');
+  if (App.carouselPaused) {
+    if (App.carouselTimer) clearInterval(App.carouselTimer);
+    App.carouselTimer = null;
+    btn.textContent = '▶️';
+    btn.title = '繼續播放';
+  } else {
+    btn.textContent = '⏸';
+    btn.title = '暫停';
+    App.carouselTimer = setInterval(carouselNext, 5000);
+  }
 }
 
 // ════════════════════════════════════════════════════
@@ -1327,6 +1346,16 @@ let Roster = [];
 let CurrentClass = '';
 
 function rosterLoad() {
+  // 舊版資料遷移
+  const oldData = localStorage.getItem('ce_roster');
+  if (oldData) {
+    const classes = getClasses();
+    if (!classes.length) {
+      localStorage.setItem('ce_classes', JSON.stringify(['預設班級']));
+      localStorage.setItem('ce_roster_預設班級', oldData);
+    }
+    localStorage.removeItem('ce_roster');
+  }
   const classes = getClasses();
   if (!classes.length) { addClass('預設班級', true); return; }
   CurrentClass = localStorage.getItem('ce_cur_class') || classes[0];
