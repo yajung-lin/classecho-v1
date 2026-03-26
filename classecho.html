@@ -25,8 +25,8 @@
   --r: 16px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); height:100vh; }
-
+body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; }
+#teacher-view { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 /* ── LOADING ── */
 #loading {
   position:fixed; inset:0; background:var(--bg);
@@ -40,7 +40,6 @@ body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); col
 @keyframes spin { to { transform:rotate(360deg); } }
 
 /* ── TEACHER VIEW ── */
-#teacher-view { display:flex; flex-direction:column; height:100vh; }
 #teacher-view.hidden { display:none; }
 
 .t-header {
@@ -76,12 +75,13 @@ body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); col
 .q-badge { background:rgba(255,255,255,0.25); padding:2px 10px; border-radius:50px; font-size:0.72rem; font-weight:800; letter-spacing:0.5px; white-space:nowrap; }
 .resp-count { margin-left:auto; background:rgba(255,255,255,0.2); padding:4px 14px; border-radius:50px; font-size:0.82rem; white-space:nowrap; }
 
-#display-area { flex:1; overflow:auto; position:relative; }
-.display-mode { min-height:100%; }
-.display-mode.hidden { display:none; }
+#display-area { flex:1; overflow:hidden; position:relative; }
+.display-mode { position:absolute; inset:0; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; }
+.display-mode.hidden { display:none !important; }
 
 /* ── WORD WALL ── */
-#mode-wall { display:flex; flex-wrap:wrap; align-content:flex-start; gap:10px; padding:24px; align-items:flex-start; }
+#mode-wall { display:block !important; padding:24px; }
+#mode-wall-inner { display:flex; flex-wrap:wrap; align-content:flex-start; gap:10px; align-items:flex-start; }
 .bubble {
   padding:10px 20px; border-radius:50px;
   font-weight:700; font-size:1rem; line-height:1.4;
@@ -359,7 +359,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 
   <main id="display-area">
     <!-- Word Wall -->
-    <div id="mode-wall" class="display-mode"></div>
+    <div id="mode-wall" class="display-mode"><div id="mode-wall-inner"></div></div>
 
     <!-- Chart -->
     <div id="mode-chart" class="display-mode hidden">
@@ -629,6 +629,13 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
         <p>老師的螢幕上已收到你的回應</p>
         <button class="btn-again" onclick="resetStudentForm()">再次回應</button>
       </div>
+    </div>
+
+    <!-- Student Whiteboard -->
+    <div id="student-whiteboard" style="display:none;margin-top:16px;">
+      <div style="font-weight:800;font-size:0.85rem;color:var(--primary);margin-bottom:8px;">✏️ 老師的白板</div>
+      <canvas id="wb-student-canvas" style="width:100%;border-radius:12px;border:1.5px solid var(--border);background:#fff;display:block;"></canvas>
+      <div style="font-size:0.75rem;color:var(--text-muted);margin-top:6px;text-align:center;">老師繪製的內容會即時顯示在這裡</div>
     </div>
   </div>
 </div>
@@ -909,7 +916,7 @@ async function clearResponses() {
     App.responses = [];
     // Clear rendered content
     const wall = document.getElementById('mode-wall');
-    wall.querySelectorAll('.bubble').forEach(b => b.remove());
+    document.getElementById('mode-wall-inner').innerHTML = '';
     document.getElementById('mode-cards').innerHTML = '';
     renderCurrentMode();
     updateStats();
@@ -946,7 +953,7 @@ function renderCurrentMode() {
 
 /* — Word Wall — */
 function renderWall() {
-  const container = document.getElementById('mode-wall');
+  const container = document.getElementById('mode-wall-inner');
   const existing = new Set(Array.from(container.querySelectorAll('.bubble')).map(b => b.dataset.id));
   App.responses.forEach((r, i) => {
     if (existing.has(r.id)) return;
@@ -1123,7 +1130,16 @@ async function initStudent(roomId) {
       const q2 = await Store.loadQuestion(roomId);
       if (q2 && q2.text !== App.question.text) { App.question = q2; updateQuestionDisplay(); }
     } catch(e) {}
-  }, 3500);
+    wbSyncFromFirebase(roomId);
+  }, 2000);
+
+  // Show student whiteboard
+  const wbCanvas = document.getElementById('wb-student-canvas');
+  if (wbCanvas) {
+    wbCanvas.width = wbCanvas.offsetWidth || 320;
+    wbCanvas.height = Math.round(wbCanvas.width * 0.6);
+    document.getElementById('student-whiteboard').style.display = 'block';
+  }
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('student-view').classList.remove('hidden');
@@ -1239,7 +1255,7 @@ function wbInit() {
     ctx.stroke();
     [WB.lastX, WB.lastY] = [x, y];
   }
-  function end() { WB.drawing = false; }
+  function end() { WB.drawing = false; wbSyncToFirebase(); }
   canvas.addEventListener('mousedown', start);
   canvas.addEventListener('mousemove', move);
   canvas.addEventListener('mouseup', end);
@@ -1682,10 +1698,54 @@ async function init() {
 
 window.addEventListener('load', init);
 
-// 讓控制面板滾輪正常運作
-document.getElementById('control-panel').addEventListener('wheel', function(e) {
-  e.stopPropagation();
-}, { passive: true });
+// ── 控制面板捲動修正 ──
+// 用 preventDefault + 手動 scrollTop，完全攔截不讓 body 收到
+document.addEventListener('DOMContentLoaded', () => {
+  const cp = document.getElementById('control-panel');
+  if (!cp) return;
+  cp.addEventListener('wheel', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    cp.scrollTop += e.deltaY;
+  }, { passive: false });
+});
+
+// ── 協作白板：Firebase 同步 ──
+let wbSyncTimer = null;
+let wbLastSent = 0;
+
+function wbSyncToFirebase() {
+  if (!App.useFirebase || !App.roomId) return;
+  const canvas = document.getElementById('wb-canvas');
+  if (!canvas) return;
+  const now = Date.now();
+  if (now - wbLastSent < 300) return; // throttle 300ms
+  wbLastSent = now;
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.5);
+  fetch(`${FIREBASE_URL}/rooms/${App.roomId}/whiteboard.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ data: dataUrl, ts: now, author: 'teacher' })
+  }).catch(() => {});
+}
+
+async function wbSyncFromFirebase(roomId) {
+  if (!FIREBASE_URL || !roomId) return;
+  try {
+    const r = await fetch(`${FIREBASE_URL}/rooms/${roomId}/whiteboard.json`);
+    const data = await r.json();
+    if (!data || !data.data) return;
+    const canvas = document.getElementById('wb-student-canvas');
+    if (!canvas) return;
+    const img = new Image();
+    img.onload = () => {
+      canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+    img.src = data.data;
+  } catch(e) {}
+}
+
 </script>
 </body>
 </html>
