@@ -25,7 +25,7 @@
   --r: 16px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; }
+body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); height:100vh; }
 
 /* ── LOADING ── */
 #loading {
@@ -213,6 +213,11 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 .stat-row { display:flex; align-items:center; gap:12px; padding:6px 0; }
 .stat-num { font-size:2rem; font-weight:900; color:var(--primary); }
 .stat-label { font-size:0.82rem; color:var(--text-muted); }
+.p-tab { flex:1; padding:9px 4px; border:none; background:none; cursor:pointer; font-family:inherit; font-weight:700; font-size:0.72rem; color:var(--text-muted); border-bottom:2px solid transparent; transition:all 0.2s; }
+.p-tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+.p-tab:hover:not(.active) { color:var(--text); }
+.p-tab-content { padding:0; display:block; }
+.p-tab-content.hidden { display:none; }
 .info-box { background:#FFF8E6; border:1.5px solid var(--yellow); border-radius:10px; padding:12px 14px; font-size:0.8rem; line-height:1.6; color:#7A5C2E; margin-bottom:0; }
 .info-box strong { color:#5C3E1A; display:block; margin-bottom:3px; }
 .info-box a { color:var(--primary); font-weight:700; }
@@ -1068,6 +1073,14 @@ function toggleCarouselPause() {
 // ════════════════════════════════════════════════════
 // TEACHER: PANEL
 // ════════════════════════════════════════════════════
+function showTab(id) {
+  document.querySelectorAll('.p-tab-content').forEach(el => el.classList.add('hidden'));
+  document.querySelectorAll('.p-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById(id).classList.remove('hidden');
+  const tabMap = {'tab-q':'ptab-q','tab-roster':'ptab-roster','tab-qr':'ptab-qr','tab-design':'ptab-design','tab-stats':'ptab-stats'};
+  document.getElementById(tabMap[id]).classList.add('active');
+}
+
 function togglePanel() {
   const panel = document.getElementById('control-panel');
   const overlay = document.getElementById('panel-overlay');
