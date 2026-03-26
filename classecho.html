@@ -1076,6 +1076,8 @@ function togglePanel() {
   panel.classList.toggle('open', willOpen);
   overlay.classList.toggle('open', willOpen);
   btn.classList.toggle('open', willOpen);
+  // 面板開啟時解除 body overflow 鎖定，讓面板可以捲動
+  document.body.style.overflow = willOpen ? '' : 'hidden';
 }
 
 // ════════════════════════════════════════════════════
