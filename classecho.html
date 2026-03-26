@@ -150,10 +150,14 @@ body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); col
   position:fixed; top:0; right:-390px; width:370px; height:100vh;
   background:var(--surface); box-shadow:-4px 0 30px rgba(0,0,0,0.12);
   z-index:51; transition:right 0.3s cubic-bezier(0.4,0,0.2,1);
-  display:flex; flex-direction:column; overflow-y:scroll;
-  -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+  display:flex; flex-direction:column;
+  overflow-y:auto; overflow-x:hidden;
+  touch-action:pan-y;
 }
-#control-panel.open { right:0; }
+#control-panel.open {
+  right:0;
+  pointer-events:all;
+}
 .panel-header {
   padding:18px 22px; border-bottom:1px solid var(--border);
   display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
@@ -1662,6 +1666,11 @@ async function init() {
 }
 
 window.addEventListener('load', init);
+
+// 讓控制面板滾輪正常運作
+document.getElementById('control-panel').addEventListener('wheel', function(e) {
+  e.stopPropagation();
+}, { passive: true });
 </script>
 </body>
 </html>
