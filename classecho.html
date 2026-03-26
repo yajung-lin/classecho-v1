@@ -403,6 +403,15 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
   <div class="lottery-box">
     <div class="lot-label" id="lot-label">抽籤結果</div>
     <div id="lot-result">—</div>
+    <!-- Response card shown after lottery -->
+    <div id="lot-response-card" style="display:none;margin-top:20px;background:var(--bg);border-radius:16px;padding:20px 24px;text-align:left;width:100%;">
+      <div id="lot-resp-name" style="font-size:0.85rem;font-weight:800;color:var(--primary);margin-bottom:10px;display:flex;align-items:center;gap:6px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block;"></span>
+        <span></span>
+      </div>
+      <div id="lot-resp-text" style="font-size:1.15rem;font-weight:600;line-height:1.7;color:var(--text);"></div>
+      <div id="lot-resp-none" style="font-size:0.88rem;color:var(--text-muted);display:none;">這位同學尚未提交回應</div>
+    </div>
     <div id="lot-groups" class="lot-groups" style="display:none;margin-top:16px;"></div>
   </div>
   <div class="lot-nav">
@@ -1533,6 +1542,7 @@ function openLottery() {
   document.getElementById('lot-label').textContent = '🎲 抽籤';
   document.getElementById('lot-groups').style.display = 'none';
   document.getElementById('lot-result').style.display = 'block';
+  document.getElementById('lot-response-card').style.display = 'none';
   document.getElementById('lottery-overlay').classList.add('open');
   runLottery();
 }
@@ -1540,6 +1550,7 @@ function openLottery() {
 function runLottery() {
   if (!Roster.length) return;
   if (lotTimer) clearInterval(lotTimer);
+  document.getElementById('lot-response-card').style.display = 'none';
   let count = 0; const total = 25;
   document.getElementById('lot-groups').style.display = 'none';
   document.getElementById('lot-result').style.display = 'block';
@@ -1552,9 +1563,31 @@ function runLottery() {
       const winner = Roster[Math.floor(Math.random()*Roster.length)];
       document.getElementById('lot-result').textContent = winner;
       document.getElementById('lot-result').style.color = 'var(--pink)';
-      setTimeout(()=>document.getElementById('lot-result').style.color='var(--primary)', 800);
+      setTimeout(() => {
+        document.getElementById('lot-result').style.color = 'var(--primary)';
+        showLotteryResponse(winner);
+      }, 800);
     }
   }, count < 15 ? 60 : 120);
+}
+
+function showLotteryResponse(name) {
+  const card = document.getElementById('lot-response-card');
+  const nameEl = document.getElementById('lot-resp-name').querySelector('span:last-child');
+  const textEl = document.getElementById('lot-resp-text');
+  const noneEl = document.getElementById('lot-resp-none');
+  // Find response matching this name
+  const resp = App.responses.slice().reverse().find(r => r.name === name);
+  nameEl.textContent = name;
+  if (resp) {
+    textEl.textContent = resp.text || resp.vote || '';
+    textEl.style.display = 'block';
+    noneEl.style.display = 'none';
+  } else {
+    textEl.style.display = 'none';
+    noneEl.style.display = 'block';
+  }
+  card.style.display = 'block';
 }
 
 function openGrouping() {
