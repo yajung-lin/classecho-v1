@@ -346,6 +346,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
       <button class="mode-tab" onclick="setMode('chart')">📊 圖表</button>
       <button class="mode-tab" onclick="setMode('cards')">🗂 回應卡</button>
       <button class="mode-tab" onclick="setMode('carousel')">🎠 輪播</button>
+      <button class="mode-tab" onclick="setMode('wordcloud')">☁️ 文字雲</button>
       <button class="mode-tab" onclick="setMode('whiteboard')">✏️ 白板</button>
     </div>
     <button class="btn-control" id="panel-toggle-btn" onclick="togglePanel()">⚙️ 控制面板</button>
@@ -387,6 +388,10 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
         </div>
         <div class="carousel-dots" id="carousel-dots"></div>
       </div>
+    </div>
+    <!-- Word Cloud -->
+    <div id="mode-wordcloud" class="display-mode hidden">
+      <canvas id="wc-canvas" style="width:100%;height:100%;display:block;"></canvas>
     </div>
     <!-- Whiteboard -->
     <div id="mode-whiteboard" class="display-mode hidden">
@@ -573,6 +578,26 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
     <button class="btn-danger" onclick="clearResponses()">🗑 清除所有回應</button>
   </div>
 
+  <!-- Anonymous Setting -->
+  <div class="panel-section">
+    <h4>👤 匿名設定</h4>
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;">
+      <div>
+        <div style="font-weight:700;font-size:0.88rem;">允許匿名回應</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">開啟後學生可選擇不填名字</div>
+      </div>
+      <label style="position:relative;width:44px;height:24px;cursor:pointer;flex-shrink:0;">
+        <input type="checkbox" id="anon-toggle" style="opacity:0;width:0;height:0;" onchange="toggleAnonymous(this.checked)">
+        <span id="anon-track" style="position:absolute;inset:0;background:var(--border);border-radius:50px;transition:background .2s;">
+          <span id="anon-thumb" style="position:absolute;top:2px;left:2px;width:20px;height:20px;background:white;border-radius:50%;transition:transform .2s;box-shadow:0 1px 4px rgba(0,0,0,0.2);"></span>
+        </span>
+      </label>
+    </div>
+    <div id="anon-status" style="font-size:0.75rem;color:var(--text-muted);padding:6px 10px;background:var(--bg);border-radius:8px;">
+      🔵 目前：需填姓名
+    </div>
+  </div>
+
   <!-- Info -->
   <div class="panel-section">
     <h4>ℹ️ 使用說明</h4>
@@ -605,9 +630,10 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
     <!-- Form -->
     <div id="student-form" style="display:none;">
       <div class="s-question" id="s-question-text">請分享你的想法</div>
-      <div class="s-field">
-        <label>你的名字</label>
+      <div class="s-field" id="s-name-field">
+        <label id="s-name-label">你的名字</label>
         <input type="text" id="s-name" placeholder="輸入名字或暱稱">
+        <div id="s-anon-hint" style="display:none;font-size:0.72rem;color:var(--text-muted);margin-top:4px;">（不填則以「匿名」送出）</div>
       </div>
       <div class="s-field" id="s-text-field">
         <label>你的回答</label>
@@ -935,12 +961,13 @@ function updateStats() {
 // ════════════════════════════════════════════════════
 function setMode(mode) {
   App.displayMode = mode;
-  const labels = ['wall','chart','cards','carousel','whiteboard'];
+  const labels = ['wall','chart','cards','carousel','wordcloud','whiteboard'];
   document.querySelectorAll('.mode-tab').forEach((t, i) => t.classList.toggle('active', labels[i] === mode));
   document.querySelectorAll('.display-mode').forEach(el => el.classList.add('hidden'));
   document.getElementById('mode-' + mode).classList.remove('hidden');
   if (App.carouselTimer) { clearInterval(App.carouselTimer); App.carouselTimer = null; }
   if (mode === 'whiteboard') { setTimeout(wbInit, 50); return; }
+  if (mode === 'wordcloud') { setTimeout(renderWordCloud, 50); return; }
   renderCurrentMode();
 }
 
@@ -949,6 +976,7 @@ function renderCurrentMode() {
   else if (App.displayMode === 'chart') renderChart();
   else if (App.displayMode === 'cards') renderCards();
   else if (App.displayMode === 'carousel') renderCarousel();
+  else if (App.displayMode === 'wordcloud') renderWordCloud();
 }
 
 /* — Word Wall — */
@@ -1158,7 +1186,7 @@ function joinRoom() {
 // STUDENT: SUBMIT
 // ════════════════════════════════════════════════════
 async function submitResponse() {
-  const name = document.getElementById('s-name').value.trim() || '匿名同學';
+  const name = document.getElementById('s-name').value.trim() || (App.anonymous ? '匿名' : '匿名同學');
   const btn = document.getElementById('s-submit');
   let response;
   if (App.question.type === 'vote') {
@@ -1197,6 +1225,131 @@ function resetStudentForm() {
 // ════════════════════════════════════════════════════
 function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════
+// 👤 ANONYMOUS TOGGLE
+// ════════════════════════════════════════════════════
+function toggleAnonymous(isAnon) {
+  App.anonymous = isAnon;
+  // Update toggle UI
+  const track = document.getElementById('anon-track');
+  const thumb = document.getElementById('anon-thumb');
+  const status = document.getElementById('anon-status');
+  if (isAnon) {
+    track.style.background = 'var(--primary)';
+    thumb.style.transform = 'translateX(20px)';
+    status.textContent = '🟢 目前：允許匿名回應';
+    status.style.color = 'var(--primary)';
+  } else {
+    track.style.background = 'var(--border)';
+    thumb.style.transform = 'translateX(0)';
+    status.textContent = '🔵 目前：需填姓名';
+    status.style.color = 'var(--text-muted)';
+  }
+  // Sync to Firebase so student page knows
+  try {
+    Store.saveQuestion(App.roomId, { ...App.question, anonymous: isAnon });
+  } catch(e) {}
+  // Update student form
+  updateStudentNameField();
+  showToast(isAnon ? '✓ 已開啟匿名模式' : '✓ 已關閉匿名模式');
+}
+
+function updateStudentNameField() {
+  const hint = document.getElementById('s-anon-hint');
+  const label = document.getElementById('s-name-label');
+  const nameInput = document.getElementById('s-name');
+  if (!hint || !label) return;
+  if (App.anonymous) {
+    hint.style.display = 'block';
+    label.textContent = '你的名字（選填）';
+    nameInput.placeholder = '可不填，留空則匿名送出';
+  } else {
+    hint.style.display = 'none';
+    label.textContent = '你的名字';
+    nameInput.placeholder = '輸入名字或暱稱';
+  }
+}
+
+// ════════════════════════════════════════════════════
+// ☁️ WORD CLOUD
+// ════════════════════════════════════════════════════
+function renderWordCloud() {
+  const canvas = document.getElementById('wc-canvas');
+  if (!canvas) return;
+  const container = document.getElementById('mode-wordcloud');
+  canvas.width = container.offsetWidth || 800;
+  canvas.height = container.offsetHeight || 500;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg') || '#F5F0EB';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (!App.responses.length) {
+    ctx.fillStyle = '#7A7570';
+    ctx.font = '700 18px Nunito, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('等待同學回應中...', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+
+  // Build word frequency
+  const stopWords = new Set(['的','了','在','是','我','有','和','就','不','人','都','一','一個','上','也','很','到','說','要','去','你','會','著','沒有','看','好','自己','這','那','什麼','可以','但','如果','因為','所以','他','她','它','我們','你們','他們','這個','那個','請問','可能','希望','覺得','需要','或者','以及','還有','然後','孩子','課程','老師','參與','進行','早期','療育','早療','早期療育']);
+  const freq = {};
+  App.responses.forEach(r => {
+    const text = (r.text || r.vote || '');
+    // Split by punctuation and spaces
+    const words = text.split(/[\s，。？！、；：「」『』（）【】,.?!\n\r]+/).filter(w => w.length >= 2 && !stopWords.has(w));
+    words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+  });
+
+  const words = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 60);
+  if (!words.length) {
+    ctx.fillStyle = '#7A7570';
+    ctx.font = '700 16px Nunito';
+    ctx.textAlign = 'center';
+    ctx.fillText('文字不足，無法產生文字雲', canvas.width / 2, canvas.height / 2);
+    return;
+  }
+
+  const maxFreq = words[0][1];
+  const COLORS = ['#5E97C0','#F2A5B2','#8ECF9E','#F5D58A','#B8A9E8','#F5BE9A','#A5D4F0','#F08080'];
+  const placed = [];
+
+  function overlaps(x, y, w, h) {
+    for (const p of placed) {
+      if (x < p.x + p.w + 6 && x + w + 6 > p.x && y < p.y + p.h + 6 && y + h + 6 > p.y) return true;
+    }
+    return false;
+  }
+
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  words.forEach(([word, count], i) => {
+    const size = Math.max(14, Math.min(72, 14 + (count / maxFreq) * 58));
+    ctx.font = `700 ${size}px "Noto Sans TC", sans-serif`;
+    const metrics = ctx.measureText(word);
+    const w = metrics.width;
+    const h = size;
+    const color = COLORS[i % COLORS.length];
+
+    // Spiral placement
+    let placed_ok = false;
+    for (let r = 0; r < Math.max(canvas.width, canvas.height); r += 4) {
+      for (let angle = 0; angle < Math.PI * 2; angle += 0.25) {
+        const x = cx + r * Math.cos(angle) - w / 2;
+        const y = cy + r * Math.sin(angle) + h / 3;
+        if (x < 5 || x + w > canvas.width - 5 || y - h < 5 || y > canvas.height - 5) continue;
+        if (!overlaps(x, y - h, w, h)) {
+          ctx.fillStyle = color;
+          ctx.fillText(word, x, y);
+          placed.push({ x, y: y - h, w, h });
+          placed_ok = true;
+          break;
+        }
+      }
+      if (placed_ok) break;
+    }
+  });
 }
 
 // ════════════════════════════════════════════════════
