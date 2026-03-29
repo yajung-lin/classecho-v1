@@ -693,6 +693,44 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
     </div>
   </div>
 
+  <!-- Quick add question -->
+  <div class="mt-section" style="padding-top:0;">
+    <h3>➕ 快速新增題目</h3>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="mt-new-q" placeholder="輸入題目後點發布..." style="flex:1;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-family:inherit;font-size:0.9rem;background:var(--surface);">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="mt-big-btn mt-btn-p" style="flex:1;" onclick="mtQuickPublish()">▶ 直接發布</button>
+      <button class="mt-big-btn mt-btn-mint" style="flex:1;" onclick="mtQuickAddToBank()">＋ 加入題庫</button>
+    </div>
+  </div>
+
+  <!-- Carousel control -->
+  <div class="mt-section" style="padding-top:0;">
+    <h3>🎠 輪播控制</h3>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <button class="mt-big-btn mt-btn-p" style="flex:1;" onclick="mtCarouselPrev()">◀ 上一則</button>
+      <button class="mt-big-btn mt-btn-pink" style="flex:1;" id="mt-pause-btn" onclick="mtTogglePause()">⏸ 暫停</button>
+      <button class="mt-big-btn mt-btn-p" style="flex:1;" onclick="mtCarouselNext()">下一則 ▶</button>
+    </div>
+  </div>
+
+  <!-- Font size -->
+  <div class="mt-section" style="padding-top:0;">
+    <h3>🔤 顯示字體大小</h3>
+    <div style="background:var(--surface);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:0.82rem;color:var(--text-muted);">目前大小</span>
+        <span id="mt-font-label" style="font-weight:900;font-size:1.1rem;color:var(--primary);">16px</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="mt-big-btn mt-btn-p" style="flex:1;font-size:1.3rem;" onclick="mtFontAdjust(-2)">A−</button>
+        <button class="mt-big-btn mt-btn-p" style="flex:1;font-size:1.3rem;" onclick="mtFontAdjust(2)">A＋</button>
+        <button class="mt-big-btn mt-btn-mint" style="flex:1;" onclick="mtFontReset()">重置</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Actions -->
   <div class="mt-section" style="padding-top:0;">
     <h3>⚡ 快速操作</h3>
@@ -974,6 +1012,25 @@ async function pollResponses() {
     const remoteMode = await modeResp.json();
     if (remoteMode && remoteMode !== App.displayMode) {
       setMode(remoteMode);
+    }
+    // Listen for carousel commands from mobile
+    const cmdResp = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`);
+    const cmdData = await cmdResp.json();
+    if (cmdData && cmdData.ts && cmdData.ts !== App.lastCarouselCmd) {
+      App.lastCarouselCmd = cmdData.ts;
+      if (cmdData.cmd === 'next') carouselNext();
+      else if (cmdData.cmd === 'prev') carouselPrev();
+      else if (cmdData.cmd === 'pause') { if (App.carouselTimer) { clearInterval(App.carouselTimer); App.carouselTimer = null; } App.carouselPaused = true; document.getElementById('carousel-pause-btn').textContent = '▶️'; }
+      else if (cmdData.cmd === 'resume') { App.carouselPaused = false; document.getElementById('carousel-pause-btn').textContent = '⏸'; resetCarouselTimer(); }
+    }
+    // Listen for font size from mobile
+    const fontResp = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/fontSize.json`);
+    const fontSize = await fontResp.json();
+    if (fontSize && fontSize !== App.lastFontSize) {
+      App.lastFontSize = fontSize;
+      applyFontSize(fontSize);
+      const slider = document.getElementById('font-size-slider');
+      if (slider) slider.value = fontSize;
     }
   } catch(e) {}
 }
@@ -2075,6 +2132,78 @@ async function mtClearResponses() {
     showToast('🗑 已清除所有回應');
   } catch(e) { showToast('清除失敗'); }
 }
+
+// 快速新增題目
+async function mtQuickPublish() {
+  const text = document.getElementById('mt-new-q').value.trim();
+  if (!text) { showToast('請先輸入題目'); return; }
+  App.question = { text, type: 'text', options: [] };
+  try { await Store.saveQuestion(App.roomId, App.question); } catch(e) {}
+  document.getElementById('mt-q-display').textContent = text;
+  document.getElementById('mt-new-q').value = '';
+  showToast('✓ 已發布：' + text.slice(0, 20));
+}
+
+function mtQuickAddToBank() {
+  const text = document.getElementById('mt-new-q').value.trim();
+  if (!text) { showToast('請先輸入題目'); return; }
+  QB.list.push({ text, type: 'text', options: [] });
+  localStorage.setItem('ce_qbank', JSON.stringify(QB.list));
+  document.getElementById('mt-qb-count').textContent = QB.list.length;
+  mtRenderQBList();
+  document.getElementById('mt-new-q').value = '';
+  showToast('✓ 已加入題庫');
+}
+
+// 輪播控制
+async function mtCarouselNext() {
+  try {
+    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cmd: 'next', ts: Date.now() })
+    });
+    showToast('▶ 下一則');
+  } catch(e) {}
+}
+
+async function mtCarouselPrev() {
+  try {
+    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cmd: 'prev', ts: Date.now() })
+    });
+    showToast('◀ 上一則');
+  } catch(e) {}
+}
+
+let mtPaused = false;
+async function mtTogglePause() {
+  mtPaused = !mtPaused;
+  const btn = document.getElementById('mt-pause-btn');
+  btn.textContent = mtPaused ? '▶ 繼續' : '⏸ 暫停';
+  try {
+    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cmd: mtPaused ? 'pause' : 'resume', ts: Date.now() })
+    });
+    showToast(mtPaused ? '⏸ 已暫停輪播' : '▶ 已繼續輪播');
+  } catch(e) {}
+}
+
+// 字體大小
+let mtFontSize = parseInt(localStorage.getItem('ce_fontsize') || '16');
+function mtFontAdjust(delta) {
+  mtFontSize = Math.min(36, Math.max(12, mtFontSize + delta));
+  document.getElementById('mt-font-label').textContent = mtFontSize + 'px';
+  localStorage.setItem('ce_fontsize', mtFontSize);
+  // Sync to Firebase so big screen updates
+  fetch(`${FIREBASE_URL}/rooms/${App.roomId}/fontSize.json`, {
+    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(mtFontSize)
+  }).catch(() => {});
+  showToast('🔤 字體：' + mtFontSize + 'px');
+}
+function mtFontReset() { mtFontSize = 16; mtFontAdjust(0); }
 
 // ════════════════════════════════════════════════════
 // ROUTER
