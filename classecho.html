@@ -222,7 +222,48 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 .info-box strong { color:#5C3E1A; display:block; margin-bottom:3px; }
 .info-box a { color:var(--primary); font-weight:700; }
 
-/* ── STUDENT VIEW ── */
+/* ── MOBILE TEACHER ── */
+#mobile-teacher-view { display:none; min-height:100vh; background:var(--bg); padding:0; }
+#mobile-teacher-view.active { display:block; }
+.mt-header {
+  background:linear-gradient(135deg,var(--primary),var(--primary-d));
+  color:white; padding:16px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.mt-logo { font-weight:900; font-size:1rem; }
+.mt-logo em { color:var(--pink); font-style:normal; }
+.mt-badge { background:rgba(255,255,255,0.25); padding:3px 10px; border-radius:50px; font-size:0.72rem; font-weight:800; }
+.mt-section { padding:14px 16px; }
+.mt-section h3 { font-weight:800; font-size:0.72rem; color:var(--text-muted); letter-spacing:.8px; text-transform:uppercase; margin-bottom:10px; }
+.mt-stat-row { display:flex; gap:10px; margin-bottom:14px; }
+.mt-stat { flex:1; background:var(--surface); border-radius:var(--r); padding:12px; text-align:center; box-shadow:var(--shadow); }
+.mt-stat-num { font-size:1.8rem; font-weight:900; color:var(--primary); line-height:1; }
+.mt-stat-lbl { font-size:0.68rem; font-weight:700; color:var(--text-muted); margin-top:3px; }
+.mt-mode-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
+.mt-mode-btn {
+  padding:14px 8px; border-radius:var(--r); border:2px solid var(--border);
+  background:var(--surface); cursor:pointer; font-family:inherit;
+  font-weight:700; font-size:0.78rem; color:var(--text-muted);
+  text-align:center; transition:all .2s;
+}
+.mt-mode-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+.mt-mode-btn .mt-icon { font-size:1.4rem; display:block; margin-bottom:4px; }
+.mt-big-btn {
+  width:100%; padding:16px; border-radius:var(--r); border:none;
+  cursor:pointer; font-family:inherit; font-weight:800; font-size:0.95rem;
+  margin-bottom:10px; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:8px;
+}
+.mt-big-btn:active { transform:scale(0.97); }
+.mt-btn-p { background:var(--primary); color:white; }
+.mt-btn-mint { background:var(--mint); color:#1A5C35; }
+.mt-btn-pink { background:var(--pink); color:#6A1E2E; }
+.mt-btn-danger { background:#FFF0F2; color:#D94F5F; border:2px solid #F5B8BE; }
+.mt-q-display { background:var(--surface); border-radius:var(--r); padding:14px 16px; font-weight:700; font-size:0.9rem; line-height:1.5; color:var(--text); box-shadow:var(--shadow); margin-bottom:10px; border-left:4px solid var(--primary); }
+.mt-qb-item { display:flex; align-items:center; gap:10px; padding:10px 14px; background:var(--surface); border-radius:10px; margin-bottom:7px; border:1.5px solid var(--border); cursor:pointer; transition:all .2s; }
+.mt-qb-item.active { border-color:var(--primary); background:var(--primary-light); }
+.mt-qb-item:active { transform:scale(0.98); }
+.mt-qb-num { width:26px; height:26px; border-radius:50%; background:var(--primary); color:white; font-size:0.72rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mt-qb-text { font-size:0.83rem; font-weight:700; flex:1; }
 #student-view { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; overflow-y:auto; }
 #student-view.hidden { display:none; }
 .student-card { background:var(--surface); border-radius:22px; padding:32px 28px; max-width:460px; width:100%; box-shadow:0 8px 40px rgba(0,0,0,0.1); }
@@ -610,6 +651,58 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
   </div>
 </div>
 
+<!-- ═══════════════════ MOBILE TEACHER VIEW ═══════════════════ -->
+<div id="mobile-teacher-view">
+  <div class="mt-header">
+    <div class="mt-logo">雅容老師的課堂討論 <em>✦</em></div>
+    <div class="mt-badge">📱 手機控制</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="mt-section">
+    <div class="mt-stat-row">
+      <div class="mt-stat"><div class="mt-stat-num" id="mt-resp-count">0</div><div class="mt-stat-lbl">則回應</div></div>
+      <div class="mt-stat"><div class="mt-stat-num" id="mt-qb-count" style="color:var(--pink);">0</div><div class="mt-stat-lbl">題庫題數</div></div>
+    </div>
+
+    <!-- Current question -->
+    <h3>📝 目前問題</h3>
+    <div class="mt-q-display" id="mt-q-display">請先設定問題</div>
+  </div>
+
+  <!-- Display mode -->
+  <div class="mt-section" style="padding-top:0;">
+    <h3>🖥 切換顯示模式</h3>
+    <div class="mt-mode-grid" id="mt-mode-grid">
+      <button class="mt-mode-btn active" onclick="mtSetMode('wall')"><span class="mt-icon">💬</span>文字牆</button>
+      <button class="mt-mode-btn" onclick="mtSetMode('chart')"><span class="mt-icon">📊</span>圖表</button>
+      <button class="mt-mode-btn" onclick="mtSetMode('cards')"><span class="mt-icon">🗂</span>回應卡</button>
+      <button class="mt-mode-btn" onclick="mtSetMode('carousel')"><span class="mt-icon">🎠</span>輪播</button>
+      <button class="mt-mode-btn" onclick="mtSetMode('wordcloud')"><span class="mt-icon">☁️</span>文字雲</button>
+      <button class="mt-mode-btn" onclick="mtSetMode('whiteboard')"><span class="mt-icon">✏️</span>白板</button>
+    </div>
+  </div>
+
+  <!-- Question bank -->
+  <div class="mt-section" style="padding-top:0;">
+    <h3>📚 題庫（點選發布）</h3>
+    <div id="mt-qb-list"></div>
+    <div style="display:flex;gap:8px;">
+      <button class="mt-big-btn mt-btn-p" style="flex:1;" onclick="mtQbPrev()">◀ 上一題</button>
+      <button class="mt-big-btn mt-btn-p" style="flex:1;" onclick="mtQbNext()">下一題 ▶</button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="mt-section" style="padding-top:0;">
+    <h3>⚡ 快速操作</h3>
+    <button class="mt-big-btn mt-btn-mint" onclick="mtLottery()">🎲 隨機抽籤</button>
+    <button class="mt-big-btn mt-btn-danger" onclick="mtClearResponses()">🗑 清除所有回應</button>
+  </div>
+
+  <div style="height:40px;"></div>
+</div>
+
 <!-- ═══════════════════ STUDENT VIEW ═══════════════════ -->
 <div id="student-view" class="hidden">
   <div class="student-card">
@@ -875,6 +968,12 @@ async function pollResponses() {
       App.responses = fresh;
       renderCurrentMode();
       updateStats();
+    }
+    // Listen for display mode changes from mobile teacher
+    const modeResp = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`);
+    const remoteMode = await modeResp.json();
+    if (remoteMode && remoteMode !== App.displayMode) {
+      setMode(remoteMode);
     }
   } catch(e) {}
 }
@@ -1830,6 +1929,152 @@ function closeLottery() {
 }
 
 // ════════════════════════════════════════════════════
+// 📱 MOBILE TEACHER
+// ════════════════════════════════════════════════════
+async function initMobileTeacher() {
+  App.isTeacher = true;
+  App.useFirebase = !!FIREBASE_URL;
+  App.roomId = 'YAJUNG';
+
+  // Load QB and roster from localStorage
+  QB.list = JSON.parse(localStorage.getItem('ce_qbank') || '[]');
+
+  // Load current question
+  try {
+    const q = await Store.loadQuestion(App.roomId);
+    if (q && q.text) { App.question = q; }
+  } catch(e) {}
+
+  // Load responses
+  await mtPollResponses();
+
+  // Start polling
+  App.pollTimer = setInterval(mtPollResponses, 2500);
+
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('mobile-teacher-view').classList.add('active');
+  mtRenderAll();
+}
+
+async function mtPollResponses() {
+  try {
+    const fresh = await Store.load(App.roomId);
+    App.responses = fresh;
+    document.getElementById('mt-resp-count').textContent = fresh.length;
+  } catch(e) {}
+  // Also poll display mode from Firebase so phone stays in sync
+  try {
+    const r = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`);
+    const mode = await r.json();
+    if (mode && mode !== App.displayMode) {
+      App.displayMode = mode;
+      mtUpdateModeButtons();
+    }
+  } catch(e) {}
+}
+
+function mtRenderAll() {
+  document.getElementById('mt-q-display').textContent = App.question.text || '請先設定問題';
+  document.getElementById('mt-qb-count').textContent = QB.list.length;
+  mtUpdateModeButtons();
+  mtRenderQBList();
+}
+
+function mtUpdateModeButtons() {
+  const modes = ['wall','chart','cards','carousel','wordcloud','whiteboard'];
+  document.querySelectorAll('.mt-mode-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', modes[i] === App.displayMode);
+  });
+}
+
+async function mtSetMode(mode) {
+  App.displayMode = mode;
+  mtUpdateModeButtons();
+  // Sync to Firebase so big screen updates
+  try {
+    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mode)
+    });
+  } catch(e) {}
+  showToast('✓ 已切換：' + mode);
+}
+
+function mtRenderQBList() {
+  const el = document.getElementById('mt-qb-list');
+  if (!QB.list.length) {
+    el.innerHTML = '<div style="text-align:center;padding:14px;font-size:0.82rem;color:var(--text-muted);">題庫是空的，請在電腦端新增題目</div>';
+    return;
+  }
+  el.innerHTML = QB.list.map((q, i) => `
+    <div class="mt-qb-item ${i === QB.idx ? 'active' : ''}" onclick="mtPublishQ(${i})">
+      <div class="mt-qb-num">${i + 1}</div>
+      <div class="mt-qb-text">${escHtml(q.text.slice(0, 40))}${q.text.length > 40 ? '…' : ''}</div>
+    </div>`).join('');
+}
+
+async function mtPublishQ(i) {
+  QB.idx = i;
+  const q = QB.list[i];
+  App.question = { text: q.text, type: q.type, options: q.options || [] };
+  try { await Store.saveQuestion(App.roomId, App.question); } catch(e) {}
+  document.getElementById('mt-q-display').textContent = App.question.text;
+  mtRenderQBList();
+  showToast('✓ 已發布：' + q.text.slice(0, 20));
+}
+
+async function mtQbNext() {
+  if (!QB.list.length) { showToast('題庫是空的'); return; }
+  QB.idx = (QB.idx + 1) % QB.list.length;
+  await mtPublishQ(QB.idx);
+}
+
+async function mtQbPrev() {
+  if (!QB.list.length) { showToast('題庫是空的'); return; }
+  QB.idx = (QB.idx - 1 + QB.list.length) % QB.list.length;
+  await mtPublishQ(QB.idx);
+}
+
+function mtLottery() {
+  // Load roster
+  const classes = JSON.parse(localStorage.getItem('ce_classes') || '[]');
+  const curClass = localStorage.getItem('ce_cur_class') || classes[0];
+  const roster = JSON.parse(localStorage.getItem('ce_roster_' + curClass) || '[]');
+  if (!roster.length) { showToast('請先在電腦端匯入名單'); return; }
+
+  // Simple lottery overlay on mobile
+  const name = roster[Math.floor(Math.random() * roster.length)];
+  let count = 0;
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;';
+  overlay.innerHTML = `
+    <div style="font-size:3.5rem;font-weight:900;color:white;" id="mt-lot-name">—</div>
+    <button onclick="this.parentElement.remove()" style="padding:12px 28px;border-radius:50px;border:none;background:white;font-weight:800;font-size:1rem;cursor:pointer;">關閉</button>`;
+  document.body.appendChild(overlay);
+  const nameEl = overlay.querySelector('#mt-lot-name');
+  const timer = setInterval(() => {
+    nameEl.textContent = roster[Math.floor(Math.random() * roster.length)];
+    count++;
+    if (count >= 20) {
+      clearInterval(timer);
+      nameEl.textContent = roster[Math.floor(Math.random() * roster.length)];
+      nameEl.style.color = 'var(--pink)';
+    }
+  }, 80);
+}
+
+async function mtClearResponses() {
+  if (!confirm('確定清除所有回應？')) return;
+  try {
+    await Store.clear(App.roomId);
+    App.responses = [];
+    document.getElementById('mt-resp-count').textContent = '0';
+    showToast('🗑 已清除所有回應');
+  } catch(e) { showToast('清除失敗'); }
+}
+
+// ════════════════════════════════════════════════════
 // ROUTER
 // ════════════════════════════════════════════════════
 async function init() {
@@ -1844,6 +2089,8 @@ async function init() {
       document.getElementById('no-room').style.display = 'block';
       document.getElementById('student-form').style.display = 'none';
     }
+  } else if (params.get('teacher') === 'mobile') {
+    await initMobileTeacher();
   } else {
     await initTeacher();
   }
