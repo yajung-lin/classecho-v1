@@ -223,7 +223,7 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
 .info-box a { color:var(--primary); font-weight:700; }
 
 /* ── MOBILE TEACHER ── */
-#mobile-teacher-view { display:none; min-height:100vh; background:var(--bg); padding:0; }
+#mobile-teacher-view { display:none; min-height:100vh; background:var(--bg); padding:0; overflow-y:auto; -webkit-overflow-scrolling:touch; }
 #mobile-teacher-view.active { display:block; }
 .mt-header {
   background:linear-gradient(135deg,var(--primary),var(--primary-d));
@@ -2012,6 +2012,7 @@ async function initMobileTeacher() {
   document.getElementById('mobile-teacher-view').classList.add('active');
   document.getElementById('teacher-view').classList.add('hidden');
   document.getElementById('student-view').classList.add('hidden');
+  document.body.style.overflow = 'auto';
   mtRenderAll();
 }
 
