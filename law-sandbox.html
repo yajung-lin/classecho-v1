@@ -566,35 +566,43 @@ textarea.note-input:focus { outline:none; border-color:var(--primary); }
     <div class="card">
       <div class="card-title">幼兒身體檢查圖</div>
       <div class="body-container">
-        <div class="body-wrap">
-          <svg viewBox="0 0 220 380" xmlns="http://www.w3.org/2000/svg">
-            <!-- Body outline -->
-            <ellipse cx="110" cy="50" rx="32" ry="38" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <rect x="78" y="88" width="64" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <rect x="48" y="92" width="28" height="72" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <rect x="144" y="92" width="28" height="72" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <rect x="82" y="178" width="26" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <rect x="112" y="178" width="26" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <ellipse cx="110" cy="280" rx="26" ry="12" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <rect x="82" y="268" width="26" height="50" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <rect x="112" y="268" width="26" height="50" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+        <div class="body-wrap" style="width:180px;height:auto;margin:0 auto;">
+          <svg viewBox="0 0 180 340" width="100%" xmlns="http://www.w3.org/2000/svg">
+            <!-- 頭 -->
+            <ellipse cx="90" cy="36" rx="28" ry="32" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <!-- 軀幹 -->
+            <rect x="58" y="68" width="64" height="80" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <!-- 左手 -->
+            <rect x="28" y="72" width="26" height="65" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <!-- 右手 -->
+            <rect x="126" y="72" width="26" height="65" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <!-- 左腿 -->
+            <rect x="60" y="148" width="28" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <!-- 右腿 -->
+            <rect x="92" y="148" width="28" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
 
-            <!-- Clickable zones -->
-            <ellipse class="body-zone" id="zone-head" cx="110" cy="50" rx="32" ry="38" onclick="checkZone('head')" data-zone="head"/>
-            <text class="zone-label" id="label-head" x="110" y="95">頭部</text>
+            <!-- 可點擊區域 + 標籤 -->
+            <!-- 頭部 -->
+            <ellipse class="body-zone" id="zone-head" cx="90" cy="36" rx="28" ry="32" onclick="checkZone('head')"/>
+            <text class="zone-label" id="label-head" x="90" y="39" style="font-size:11px;text-anchor:middle;dominant-baseline:middle;">頭部</text>
 
-            <rect class="body-zone" id="zone-back" x="78" y="88" width="64" height="90" rx="8" onclick="checkZone('back')" data-zone="back"/>
-            <text class="zone-label" id="label-back" x="110" y="155">軀幹/背部</text>
+            <!-- 軀幹 -->
+            <rect class="body-zone" id="zone-back" x="58" y="68" width="64" height="80" rx="8" onclick="checkZone('back')"/>
+            <text class="zone-label" id="label-back" x="90" y="110" style="font-size:10px;text-anchor:middle;">軀幹</text>
 
-            <rect class="body-zone" id="zone-hand" x="44" y="92" width="32" height="72" rx="8" onclick="checkZone('hand')" data-zone="hand"/>
-            <text class="zone-label" id="label-hand" x="60" y="175">手臂</text>
+            <!-- 手臂（左+右合併點擊區） -->
+            <rect class="body-zone" id="zone-hand" x="24" y="72" width="30" height="65" rx="8" onclick="checkZone('hand')"/>
+            <rect class="body-zone" id="zone-hand2" x="126" y="72" width="30" height="65" rx="8" onclick="checkZone('hand')" style="pointer-events:all;"/>
+            <text class="zone-label" id="label-hand" x="90" y="118" style="font-size:9px;text-anchor:middle;fill:#888;"></text>
+            <text style="font-size:9px;fill:#A89880;text-anchor:middle;" x="39" y="140">手臂</text>
 
-            <rect class="body-zone" id="zone-leg" x="78" y="175" width="64" height="110" rx="8" onclick="checkZone('leg')" data-zone="leg"/>
-            <text class="zone-label" id="label-leg" x="110" y="240">腿部</text>
+            <!-- 腿部 -->
+            <rect class="body-zone" id="zone-leg" x="56" y="148" width="68" height="90" rx="8" onclick="checkZone('leg')"/>
+            <text class="zone-label" id="label-leg" x="90" y="196" style="font-size:11px;text-anchor:middle;">腿部</text>
           </svg>
         </div>
       </div>
-      <div style="font-size:0.72rem;color:var(--text-d);text-align:center;">點擊各部位進行晨間檢查</div>
+      <div style="font-size:0.72rem;color:var(--text-d);text-align:center;margin-top:8px;">點擊各部位進行晨間檢查</div>
     </div>
 
     <!-- Checklist & Evidence -->
@@ -1168,6 +1176,7 @@ function checkZone(zone) {
   S.checked[zone] = true;
 
   const zoneEl = document.getElementById('zone-'+zone);
+  const zone2 = document.getElementById("zone-"+zone+"2");
   const ci = document.getElementById('ci-'+zone);
 
   if (zone === 'leg' && EVENTS.leg.alert) {
