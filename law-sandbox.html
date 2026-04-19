@@ -131,7 +131,17 @@ body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); color:var(--
 .body-zone:hover + .zone-label, .body-zone.checked + .zone-label { fill:#2A5F8A; }
 .body-zone.alert + .zone-label { fill:#8A2A2A; }
 
-/* ── CHECK LIST ── */
+/* ── BODY BUTTONS ── */
+.body-btn {
+  width:100%; padding:14px 10px; border-radius:var(--r);
+  border:2px solid var(--border); background:var(--surface);
+  cursor:pointer; font-family:inherit; font-size:.85rem;
+  font-weight:700; color:var(--text-m); transition:all .2s;
+  text-align:center;
+}
+.body-btn:hover { border-color:var(--primary); color:var(--primary); background:var(--primary-l); }
+.body-btn.checked { border-color:var(--green); color:var(--green); background:var(--green-l); pointer-events:none; }
+.body-btn.alert-zone { border-color:var(--red); color:var(--red); background:var(--red-l); pointer-events:none; animation:borderPulse .8s ease-in-out infinite; }
 .check-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
 .check-item {
   display:flex; align-items:center; gap:8px;
@@ -560,49 +570,30 @@ textarea.note-input:focus { outline:none; border-color:var(--primary); }
     <div>今天是星期一早晨，小明（3歲）入園。根據「幼兒入園晨間健康檢查」規定，你必須對幼兒進行身體部位檢查。請點擊下方各部位進行檢查。</div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:start;">
+  <div style="display:grid;grid-template-columns:1fr 1.4fr;gap:20px;align-items:start;">
 
-    <!-- Body SVG -->
+    <!-- Body check cards -->
     <div class="card">
       <div class="card-title">幼兒身體檢查圖</div>
-      <div class="body-container">
-        <div class="body-wrap" style="width:180px;height:auto;margin:0 auto;">
-          <svg viewBox="0 0 180 340" width="100%" xmlns="http://www.w3.org/2000/svg">
-            <!-- 頭 -->
-            <ellipse cx="90" cy="36" rx="28" ry="32" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <!-- 軀幹 -->
-            <rect x="58" y="68" width="64" height="80" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <!-- 左手 -->
-            <rect x="28" y="72" width="26" height="65" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <!-- 右手 -->
-            <rect x="126" y="72" width="26" height="65" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <!-- 左腿 -->
-            <rect x="60" y="148" width="28" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-            <!-- 右腿 -->
-            <rect x="92" y="148" width="28" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
-
-            <!-- 可點擊區域 + 標籤 -->
-            <!-- 頭部 -->
-            <ellipse class="body-zone" id="zone-head" cx="90" cy="36" rx="28" ry="32" onclick="checkZone('head')"/>
-            <text class="zone-label" id="label-head" x="90" y="39" style="font-size:11px;text-anchor:middle;dominant-baseline:middle;">頭部</text>
-
-            <!-- 軀幹 -->
-            <rect class="body-zone" id="zone-back" x="58" y="68" width="64" height="80" rx="8" onclick="checkZone('back')"/>
-            <text class="zone-label" id="label-back" x="90" y="110" style="font-size:10px;text-anchor:middle;">軀幹</text>
-
-            <!-- 手臂（左+右合併點擊區） -->
-            <rect class="body-zone" id="zone-hand" x="24" y="72" width="30" height="65" rx="8" onclick="checkZone('hand')"/>
-            <rect class="body-zone" id="zone-hand2" x="126" y="72" width="30" height="65" rx="8" onclick="checkZone('hand')" style="pointer-events:all;"/>
-            <text class="zone-label" id="label-hand" x="90" y="118" style="font-size:9px;text-anchor:middle;fill:#888;"></text>
-            <text style="font-size:9px;fill:#A89880;text-anchor:middle;" x="39" y="140">手臂</text>
-
-            <!-- 腿部 -->
-            <rect class="body-zone" id="zone-leg" x="56" y="148" width="68" height="90" rx="8" onclick="checkZone('leg')"/>
-            <text class="zone-label" id="label-leg" x="90" y="196" style="font-size:11px;text-anchor:middle;">腿部</text>
-          </svg>
-        </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+        <button class="body-btn" id="zone-head" onclick="checkZone('head')">
+          <span style="font-size:1.6rem;display:block;margin-bottom:4px;">🙂</span>
+          <span>頭部</span>
+        </button>
+        <button class="body-btn" id="zone-back" onclick="checkZone('back')">
+          <span style="font-size:1.6rem;display:block;margin-bottom:4px;">👕</span>
+          <span>軀幹／背部</span>
+        </button>
+        <button class="body-btn" id="zone-hand" onclick="checkZone('hand')">
+          <span style="font-size:1.6rem;display:block;margin-bottom:4px;">🤚</span>
+          <span>手臂</span>
+        </button>
+        <button class="body-btn" id="zone-leg" onclick="checkZone('leg')">
+          <span style="font-size:1.6rem;display:block;margin-bottom:4px;">🦵</span>
+          <span>腿部</span>
+        </button>
       </div>
-      <div style="font-size:0.72rem;color:var(--text-d);text-align:center;margin-top:8px;">點擊各部位進行晨間檢查</div>
+      <div style="font-size:0.72rem;color:var(--text-d);text-align:center;">點擊各部位進行晨間檢查</div>
     </div>
 
     <!-- Checklist & Evidence -->
@@ -1175,31 +1166,24 @@ function checkZone(zone) {
   if (S.checked[zone]) return;
   S.checked[zone] = true;
 
-  const zoneEl = document.getElementById('zone-'+zone);
-  const zone2 = document.getElementById("zone-"+zone+"2");
+  const btn = document.getElementById('zone-'+zone);
   const ci = document.getElementById('ci-'+zone);
 
   if (zone === 'leg' && EVENTS.leg.alert) {
-    // Trigger alert event
     S.alertFound = true;
-    zoneEl.classList.add('alert');
-    ci.classList.add('alert');
-    ci.querySelector('.check-dot').style.background = 'currentColor';
-
+    if (btn) btn.className = 'body-btn alert-zone';
+    if (ci) { ci.classList.add('alert'); ci.querySelector('.check-dot').style.background = 'currentColor'; }
     document.getElementById('alert-msg').style.display = 'block';
     document.getElementById('alert-text').textContent = '⚠ ' + EVENTS.leg.msg;
     document.getElementById('evidence-card').style.display = 'block';
-
     document.getElementById('overlay-alert-body').textContent = EVENTS.leg.msg;
     openOverlay('overlay-alert');
-
     S.legal += 10;
     updateBars();
   } else {
-    zoneEl.classList.add('checked');
-    ci.classList.add('done');
+    if (btn) btn.className = 'body-btn checked';
+    if (ci) ci.classList.add('done');
   }
-
   checkAllDone();
 }
 
@@ -1756,7 +1740,7 @@ function resetGame() {
   updateBars();
   // Reset zones
   ['head','back','hand','leg'].forEach(z => {
-    document.getElementById('zone-'+z).className='body-zone';
+    document.getElementById('zone-'+z).className='body-btn';
     document.getElementById('ci-'+z).className='check-item';
     document.getElementById('ci-'+z).querySelector('.check-dot').style.background='';
   });
