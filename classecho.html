@@ -389,6 +389,8 @@ textarea:focus, input[type=text]:focus { border-color:var(--primary); }
       <button class="mode-tab" onclick="setMode('carousel')">🎠 輪播</button>
       <button class="mode-tab" onclick="setMode('wordcloud')">☁️ 文字雲</button>
       <button class="mode-tab" onclick="setMode('whiteboard')">✏️ 白板</button>
+      <span style="width:1px;height:22px;background:var(--border);margin:0 4px;flex-shrink:0;align-self:center;"></span>
+      <a href="law-sandbox.html" class="mode-tab" style="text-decoration:none;background:var(--gold-l,#FFF8E6);color:var(--gold,#8A6A00);border:1.5px solid var(--yellow,#F5D68A);">⚖️ 法律風險模擬</a>
     </div>
     <button class="btn-control" id="panel-toggle-btn" onclick="togglePanel()">⚙️ 控制面板</button>
   </header>
@@ -1600,10 +1602,33 @@ function wbSave() {
 let QB = { list: [], idx: -1, type: 'text', optCount: 0 };
 
 function qbLoad() {
+  // 先從 localStorage 載入（快）
   QB.list = JSON.parse(localStorage.getItem('ce_qbank') || '[]');
   renderQBList();
+  // 再從 Firebase 同步（慢但跨裝置）
+  if (App.useFirebase) {
+    fetch(`${FIREBASE_URL}/settings/qbank.json`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && Array.isArray(data)) {
+          QB.list = data;
+          localStorage.setItem('ce_qbank', JSON.stringify(data));
+          renderQBList();
+        }
+      }).catch(() => {});
+  }
 }
-function qbSave() { localStorage.setItem('ce_qbank', JSON.stringify(QB.list)); }
+
+function qbSave() {
+  localStorage.setItem('ce_qbank', JSON.stringify(QB.list));
+  if (App.useFirebase) {
+    fetch(`${FIREBASE_URL}/settings/qbank.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(QB.list)
+    }).catch(() => {});
+  }
+}
 
 function qbSetType(t) {
   QB.type = t;
@@ -1707,6 +1732,28 @@ function rosterLoad() {
   Roster = JSON.parse(localStorage.getItem('ce_roster_' + CurrentClass) || '[]');
   renderClassSelect();
   renderRoster();
+  // 從 Firebase 同步班級資料
+  if (App.useFirebase) {
+    fetch(`${FIREBASE_URL}/settings/classes.json`)
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.list && Array.isArray(data.list)) {
+          data.list.forEach(cls => {
+            if (!getClasses().includes(cls)) {
+              const arr = getClasses(); arr.push(cls);
+              localStorage.setItem('ce_classes', JSON.stringify(arr));
+            }
+            if (data.rosters && data.rosters[cls]) {
+              localStorage.setItem('ce_roster_' + cls, JSON.stringify(data.rosters[cls]));
+            }
+          });
+          renderClassSelect();
+          // 重新載入目前班級
+          Roster = JSON.parse(localStorage.getItem('ce_roster_' + CurrentClass) || '[]');
+          renderRoster();
+        }
+      }).catch(() => {});
+  }
 }
 
 function getClasses() {
@@ -1715,6 +1762,21 @@ function getClasses() {
 
 function saveClasses(arr) {
   localStorage.setItem('ce_classes', JSON.stringify(arr));
+  fbSaveAllRosters();
+}
+
+function fbSaveAllRosters() {
+  if (!App.useFirebase) return;
+  const classes = getClasses();
+  const rosters = {};
+  classes.forEach(c => {
+    rosters[c] = JSON.parse(localStorage.getItem('ce_roster_' + c) || '[]');
+  });
+  fetch(`${FIREBASE_URL}/settings/classes.json`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ list: classes, rosters })
+  }).catch(() => {});
 }
 
 function addClass(name, silent) {
@@ -1764,6 +1826,7 @@ function renderClassSelect() {
 
 function rosterSaveData() {
   localStorage.setItem('ce_roster_' + CurrentClass, JSON.stringify(Roster));
+  fbSaveAllRosters();
 }
 
 function rosterImport() {

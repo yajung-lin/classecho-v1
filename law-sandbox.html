@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保證人地位模擬沙盒｜幼教法律倫理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #F4F2EE;
+  --bg2: #EDEAE4;
+  --bg3: #E5E1D8;
+  --surface: #FFFFFF;
+  --surface2: #F8F6F2;
+  --border: #C8C0B0;
+  --border-light: #A89880;
+  --primary: #2A5F8A;
+  --primary-d: #1E4870;
+  --primary-l: #D6E6F2;
+  --gold: #8A6A20;
+  --gold-l: #F5EDD4;
+  --red: #8A2A2A;
+  --red-l: #F5E0E0;
+  --green: #1A6A40;
+  --green-l: #D6F0E4;
+  --amber: #8A5A1A;
+  --text: #1A1A1A;
+  --text-m: #4A4A4A;
+  --text-d: #888070;
+  --r: 4px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.10);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+/* ── TOP NAV ── */
+.top-nav {
+  background:var(--bg2); border-bottom:1px solid var(--border);
+  padding:10px 24px; display:flex; align-items:center; gap:14px;
+}
+.back-btn {
+  padding:6px 14px; border-radius:var(--r); border:1px solid var(--border-light);
+  background:transparent; color:var(--text-m); cursor:pointer;
+  font-family:inherit; font-size:0.78rem; font-weight:500;
+  transition:all .2s; text-decoration:none; display:inline-flex; align-items:center; gap:5px;
+}
+.back-btn:hover { border-color:var(--primary); color:var(--primary); }
+.nav-title { font-family:'Noto Serif TC',serif; font-size:0.9rem; color:var(--text-m); }
+.nav-title em { color:var(--gold); font-style:normal; }
+.case-badge { margin-left:auto; background:var(--red-l); color:var(--red); border:1px solid var(--red); padding:3px 10px; border-radius:2px; font-size:0.68rem; font-weight:700; letter-spacing:1px; }
+
+/* ── HEADER ── */
+.case-header {
+  background:linear-gradient(180deg, var(--bg2) 0%, var(--bg) 100%);
+  border-bottom:1px solid var(--border);
+  padding:32px 40px 28px;
+  position:relative;
+}
+.case-header::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, var(--gold) 0%, var(--primary) 50%, var(--gold) 100%);
+}
+.case-number { font-size:0.72rem; color:var(--text-d); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+.case-title { font-family:'Noto Serif TC',serif; font-size:1.6rem; font-weight:700; color:var(--text); line-height:1.4; margin-bottom:10px; }
+.case-subtitle { font-size:0.85rem; color:var(--text-m); line-height:1.7; max-width:680px; }
+.case-meta { display:flex; gap:24px; margin-top:18px; flex-wrap:wrap; }
+.meta-item { font-size:0.75rem; color:var(--text-d); display:flex; flex-direction:column; gap:2px; }
+.meta-item strong { color:var(--text-m); font-weight:500; }
+
+/* ── STATUS BARS ── */
+.status-panel {
+  background:var(--bg2); border-bottom:1px solid var(--border);
+  padding:14px 40px; display:flex; gap:40px; align-items:center;
+}
+.status-item { flex:1; max-width:280px; }
+.status-label { font-size:0.7rem; letter-spacing:1px; color:var(--text-d); text-transform:uppercase; margin-bottom:5px; display:flex; justify-content:space-between; }
+.status-label span { color:var(--text-m); font-size:0.75rem; }
+.status-bar { background:var(--bg3); border-radius:2px; height:6px; overflow:hidden; border:1px solid var(--border); }
+.status-fill { height:100%; border-radius:2px; transition:width .6s cubic-bezier(.4,0,.2,1); }
+.fill-admin { background:linear-gradient(90deg,#4A90C4,#6AAEE4); }
+.fill-legal { background:linear-gradient(90deg,#4AB87A,#6AD89A); }
+
+/* ── MAIN TABS ── */
+.tabs-wrap { background:var(--bg2); border-bottom:1px solid var(--border); padding:0 40px; }
+.tabs { display:flex; gap:0; }
+.tab {
+  padding:14px 22px; border:none; background:transparent; cursor:pointer;
+  font-family:inherit; font-size:0.82rem; font-weight:500; color:var(--text-d);
+  border-bottom:2px solid transparent; transition:all .2s; position:relative;
+  display:flex; align-items:center; gap:7px;
+}
+.tab:hover { color:var(--text-m); }
+.tab.active { color:var(--gold); border-bottom-color:var(--gold); }
+.tab.locked { cursor:not-allowed; opacity:0.4; }
+.tab .tab-num { width:18px; height:18px; border-radius:50%; border:1px solid currentColor; font-size:0.65rem; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.lock-icon { font-size:0.7rem; }
+
+/* ── CONTENT ── */
+.content { max-width:960px; margin:0 auto; padding:32px 40px; }
+.panel { display:none; }
+.panel.active { display:block; }
+
+/* ── CARDS ── */
+.card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:22px 24px; margin-bottom:18px;
+}
+.card-title {
+  font-family:'Noto Serif TC',serif; font-size:0.72rem; font-weight:700;
+  color:var(--gold); letter-spacing:2px; text-transform:uppercase;
+  margin-bottom:14px; padding-bottom:10px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:8px;
+}
+.card-title::before { content:''; width:3px; height:14px; background:var(--gold); border-radius:1px; flex-shrink:0; }
+
+/* ── CHILD BODY SVG ── */
+.body-container { display:flex; justify-content:center; padding:20px 0; position:relative; }
+.body-wrap { position:relative; width:220px; height:380px; }
+.body-wrap svg { width:100%; height:100%; }
+.body-zone {
+  cursor:pointer; transition:all .2s; fill:transparent;
+}
+.body-zone:hover { fill:rgba(42,95,138,0.12); }
+.body-zone.checked { fill:rgba(26,106,64,0.12); }
+.body-zone.alert { fill:rgba(138,42,42,0.18); animation:pulse 1s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.zone-label {
+  font-size:0.7rem; fill:#888070; text-anchor:middle; pointer-events:none;
+  transition:fill .2s;
+}
+.body-zone:hover + .zone-label, .body-zone.checked + .zone-label { fill:#2A5F8A; }
+.body-zone.alert + .zone-label { fill:#8A2A2A; }
+
+/* ── CHECK LIST ── */
+.check-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+.check-item {
+  display:flex; align-items:center; gap:8px;
+  padding:9px 12px; border:1px solid var(--border); border-radius:var(--r);
+  font-size:0.82rem; color:var(--text-m); transition:all .2s;
+  cursor:pointer;
+}
+.check-item:hover { border-color:var(--border-light); color:var(--text); }
+.check-item.done { border-color:var(--green); color:var(--green); background:var(--green-l); }
+.check-item.alert { border-color:var(--red); color:var(--red); background:var(--red-l); animation:borderPulse .8s ease-in-out infinite; }
+@keyframes borderPulse { 0%,100%{border-color:var(--red)} 50%{border-color:#8B3A36} }
+.check-dot { width:8px; height:8px; border-radius:50%; border:1.5px solid currentColor; flex-shrink:0; transition:all .2s; }
+.check-item.done .check-dot, .check-item.alert .check-dot { background:currentColor; }
+
+/* ── EVIDENCE PANEL ── */
+.evidence-actions { display:flex; gap:10px; margin-top:14px; }
+.ev-btn {
+  flex:1; padding:11px; border-radius:var(--r); border:1px solid var(--border);
+  background:var(--bg3); color:var(--text-m); cursor:pointer;
+  font-family:inherit; font-size:0.82rem; font-weight:500;
+  transition:all .2s; display:flex; align-items:center; justify-content:center; gap:7px;
+}
+.ev-btn:hover:not(:disabled) { border-color:var(--primary); color:var(--primary); background:var(--primary-l); }
+.ev-btn:disabled { opacity:0.3; cursor:not-allowed; }
+.ev-btn.done { border-color:var(--green); color:var(--green); background:var(--green-l); }
+.evidence-log { margin-top:14px; }
+.log-item { font-size:0.78rem; color:var(--text-m); padding:7px 10px; border-left:2px solid var(--border); margin-bottom:6px; background:var(--bg3); }
+.log-item.success { border-left-color:var(--green); color:var(--green); }
+.log-item.warn { border-left-color:var(--amber); color:var(--amber); }
+.log-item .log-time { color:var(--text-d); margin-right:8px; font-family:monospace; }
+
+/* ── NOTE AREA ── */
+textarea.note-input {
+  width:100%; background:var(--bg3); border:1px solid var(--border);
+  color:var(--text); font-family:'Noto Sans TC',sans-serif; font-size:0.82rem;
+  padding:10px 12px; border-radius:var(--r); resize:vertical; min-height:80px;
+  transition:border-color .2s; margin-top:8px;
+}
+textarea.note-input:focus { outline:none; border-color:var(--primary); }
+
+/* ── DECISION BUTTONS ── */
+.decision-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; }
+.decision-btn {
+  padding:18px 20px; border-radius:var(--r); border:1px solid var(--border);
+  background:var(--bg3); color:var(--text); cursor:pointer;
+  font-family:inherit; font-size:0.88rem; font-weight:500;
+  transition:all .25s; text-align:left; line-height:1.6;
+}
+.decision-btn:hover { transform:translateY(-2px); }
+.decision-btn.legal { border-color:var(--primary); background:var(--primary-l); }
+.decision-btn.legal:hover { background:#1F3F5C; box-shadow:0 4px 20px rgba(74,144,196,0.2); }
+.decision-btn.illegal { border-color:var(--amber); background:var(--gold-l); }
+.decision-btn.illegal:hover { background:#2A2010; box-shadow:0 4px 20px rgba(196,138,74,0.2); }
+.decision-btn .d-icon { font-size:1.4rem; display:block; margin-bottom:8px; }
+.decision-btn .d-label { font-size:0.68rem; letter-spacing:1.5px; color:var(--text-d); text-transform:uppercase; margin-bottom:4px; }
+.decision-btn.legal .d-label { color:var(--primary); }
+.decision-btn.illegal .d-label { color:var(--amber); }
+.decision-btn .d-title { font-size:0.95rem; font-weight:700; margin-bottom:5px; }
+.decision-btn .d-desc { font-size:0.75rem; color:var(--text-m); line-height:1.6; }
+.decision-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+.decision-btn.chosen { opacity:1 !important; }
+.decision-btn.chosen.legal { box-shadow:0 0 0 2px var(--primary); }
+.decision-btn.chosen.illegal { box-shadow:0 0 0 2px var(--amber); }
+
+/* ── MESSAGE CARDS ── */
+.msg-card { background:var(--bg3); border:1px solid var(--border); border-radius:var(--r); padding:16px 18px; margin-bottom:12px; }
+.msg-header { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.msg-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; flex-shrink:0; }
+.av-principal { background:var(--primary-l); color:var(--primary); border:1px solid var(--primary); }
+.av-parent { background:var(--gold-l); color:var(--gold); border:1px solid var(--gold); }
+.msg-sender { font-size:0.78rem; font-weight:700; }
+.msg-role { font-size:0.68rem; color:var(--text-d); }
+.msg-body { font-size:0.85rem; line-height:1.7; color:var(--text-m); border-left:2px solid var(--border); padding-left:12px; font-style:italic; }
+.msg-card.principal .msg-body { border-left-color:var(--primary); }
+.msg-card.parent .msg-body { border-left-color:var(--gold); }
+
+/* ── VERDICT ── */
+.verdict-paper {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--r); padding:36px 40px;
+  position:relative; overflow:hidden;
+}
+.verdict-paper::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:4px;
+}
+.verdict-paper.guilty::before { background:var(--red); }
+.verdict-paper.guilty-negligent::before { background:var(--amber); }
+.verdict-paper.innocent::before { background:var(--green); }
+.verdict-watermark {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) rotate(-25deg);
+  font-family:'Noto Serif TC',serif; font-size:5rem; font-weight:700;
+  opacity:0.04; pointer-events:none; white-space:nowrap; letter-spacing:10px;
+}
+.verdict-watermark.guilty { color:var(--red); }
+.verdict-watermark.innocent { color:var(--green); }
+.court-header { text-align:center; margin-bottom:28px; }
+.court-title { font-family:'Noto Serif TC',serif; font-size:0.72rem; color:var(--text-d); letter-spacing:3px; margin-bottom:6px; }
+.court-case { font-family:'Noto Serif TC',serif; font-size:1rem; color:var(--text-m); margin-bottom:4px; }
+.verdict-result {
+  text-align:center; margin:28px 0;
+  padding:24px; border:1px solid var(--border); border-radius:var(--r);
+}
+.verdict-label { font-size:0.68rem; color:var(--text-d); letter-spacing:2px; text-transform:uppercase; margin-bottom:8px; }
+.verdict-text { font-family:'Noto Serif TC',serif; font-size:2rem; font-weight:700; letter-spacing:4px; }
+.verdict-text.guilty { color:var(--red); }
+.verdict-text.guilty-negligent { color:var(--amber); }
+.verdict-text.innocent { color:var(--green); }
+.verdict-section { margin-bottom:20px; }
+.verdict-section h3 { font-family:'Noto Serif TC',serif; font-size:0.78rem; color:var(--gold); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+.verdict-section p { font-size:0.85rem; color:var(--text-m); line-height:1.9; margin-bottom:8px; }
+.verdict-section .law-cite { font-size:0.8rem; color:var(--primary); background:var(--primary-l); padding:8px 12px; border-radius:var(--r); border-left:2px solid var(--primary); margin-bottom:8px; font-family:monospace; }
+.verdict-signature { text-align:right; margin-top:28px; padding-top:18px; border-top:1px solid var(--border); font-size:0.78rem; color:var(--text-d); line-height:1.8; }
+
+/* ── ALERT BOX ── */
+.alert-box { padding:12px 16px; border-radius:var(--r); font-size:0.82rem; line-height:1.6; margin-bottom:14px; display:flex; gap:10px; align-items:flex-start; }
+.alert-box.info { background:#D6E6F2; border:1px solid #2A5F8A; color:#1E4870; }
+.alert-box.warn { background:#F5EDD4; border:1px solid #8A6A20; color:#6A4A10; }
+.alert-box.danger { background:#F5E0E0; border:1px solid #8A2A2A; color:#6A1A1A; }
+.alert-box.success { background:#D6F0E4; border:1px solid #1A6A40; color:#0A4A28; }
+.alert-icon { flex-shrink:0; font-size:1rem; margin-top:1px; }
+
+/* ── PROCEED BTN ── */
+.proceed-btn {
+  width:100%; padding:14px; border-radius:var(--r); border:1px solid var(--gold);
+  background:var(--gold-l); color:var(--gold); cursor:pointer;
+  font-family:inherit; font-weight:700; font-size:0.88rem;
+  transition:all .2s; margin-top:16px; letter-spacing:1px;
+}
+.proceed-btn:hover { background:#2A2010; }
+.proceed-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+/* ── RESET BTN ── */
+.reset-btn {
+  padding:9px 20px; border-radius:var(--r); border:1px solid var(--border);
+  background:transparent; color:var(--text-m); cursor:pointer;
+  font-family:inherit; font-size:0.8rem; transition:all .2s;
+}
+.reset-btn:hover { border-color:var(--text-m); color:var(--text); }
+
+/* ── OVERLAY ── */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:100; display:none; align-items:center; justify-content:center; padding:20px; }
+.overlay.open { display:flex; }
+.overlay-card { background:#FFFFFF; border:1.5px solid var(--red); border-radius:var(--r); padding:28px 32px; max-width:460px; width:100%; box-shadow:0 8px 40px rgba(138,42,42,0.2); }
+.overlay-card.warn-card { border-color:var(--amber); box-shadow:0 8px 40px rgba(138,90,26,0.2); }
+.overlay-title { font-family:'Noto Serif TC',serif; font-size:1rem; font-weight:700; color:var(--red); margin-bottom:8px; }
+.overlay-card.warn-card .overlay-title { color:var(--amber); }
+.overlay-body { font-size:0.85rem; color:var(--text-m); line-height:1.7; margin-bottom:20px; }
+.overlay-close { width:100%; padding:10px; border-radius:var(--r); border:1px solid var(--border); background:var(--bg3); color:var(--text-m); cursor:pointer; font-family:inherit; font-size:0.82rem; transition:all .2s; }
+.overlay-close:hover { border-color:var(--text-m); color:var(--text); }
+
+/* Responsive */
+@media(max-width:680px) {
+  .case-header { padding:20px; }
+  .content { padding:20px; }
+  .status-panel { padding:12px 20px; flex-direction:column; gap:12px; }
+  .tabs-wrap { padding:0 20px; }
+  .decision-grid { grid-template-columns:1fr; }
+  .verdict-paper { padding:22px 20px; }
+}
+
+/* ── PANEL 4: ROLL CALL ── */
+.child-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:20px; }
+.child-card {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r); padding:20px 16px; text-align:center;
+  cursor:pointer; transition:all .25s; position:relative;
+}
+.child-card:hover { border-color:var(--primary); transform:translateY(-2px); box-shadow:var(--shadow); }
+.child-card.selected { border-color:var(--primary); box-shadow:0 0 0 3px var(--primary-l); }
+.child-card.critical { border-color:var(--red); }
+.child-card.critical:hover { box-shadow:0 0 0 3px var(--red-l); }
+.child-avatar { width:60px; height:60px; border-radius:50%; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; border:2px solid var(--border); }
+.child-name { font-weight:700; font-size:0.9rem; margin-bottom:4px; }
+.child-tag { font-size:0.68rem; padding:2px 8px; border-radius:2px; letter-spacing:1px; display:inline-block; margin-bottom:8px; }
+.tag-normal { background:var(--primary-l); color:var(--primary-d); }
+.tag-alert { background:var(--red-l); color:var(--red); }
+.tag-critical { background:#2A0000; color:#FF8080; border:1px solid var(--red); }
+.child-hint { font-size:0.75rem; color:var(--text-d); }
+.child-detail {
+  background:var(--bg2); border:1px solid var(--border); border-radius:var(--r);
+  padding:20px 22px; margin-bottom:16px; display:none;
+}
+.child-detail.open { display:block; }
+.child-detail h3 { font-family:'Noto Serif TC',serif; font-size:0.88rem; color:var(--gold); margin-bottom:10px; }
+.child-detail p { font-size:0.85rem; color:var(--text-m); line-height:1.8; margin-bottom:8px; }
+.discuss-q { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px 18px; margin-bottom:10px; }
+.discuss-q .q-label { font-size:0.68rem; color:var(--gold); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:6px; }
+.discuss-q p { font-size:0.88rem; color:var(--text-m); line-height:1.7; }
+.priority-vote { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+.pv-btn { padding:9px 18px; border-radius:var(--r); border:1px solid var(--border); background:var(--bg3); color:var(--text-m); cursor:pointer; font-family:inherit; font-size:0.82rem; font-weight:500; transition:all .2s; }
+.pv-btn:hover { border-color:var(--primary); color:var(--primary); }
+.pv-btn.voted { background:var(--primary); color:white; border-color:var(--primary); }
+.vote-result { margin-top:14px; display:none; }
+.vote-bar-wrap { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+.vote-bar-label { font-size:0.78rem; color:var(--text-m); width:60px; flex-shrink:0; }
+.vote-bar-track { flex:1; background:var(--bg3); border-radius:2px; height:12px; overflow:hidden; border:1px solid var(--border); }
+.vote-bar-fill { height:100%; background:var(--primary); border-radius:2px; transition:width .6s; }
+.vote-count { font-size:0.75rem; color:var(--text-d); width:30px; text-align:right; }
+
+/* ── PANEL 5: BALANCE ── */
+.balance-wrap { display:flex; flex-direction:column; align-items:center; padding:20px 0; }
+.balance-beam {
+  width:320px; height:8px; background:var(--border);
+  border-radius:4px; position:relative; margin:10px 0;
+  transition:transform .6s cubic-bezier(.4,0,.2,1);
+  transform-origin:center center;
+}
+.balance-pivot { width:16px; height:36px; background:var(--text-d); border-radius:2px; margin:0 auto; }
+.balance-stand { width:4px; height:60px; background:var(--text-d); margin:0 auto; border-radius:2px; }
+.balance-base { width:80px; height:8px; background:var(--text-d); border-radius:4px; margin:0 auto; }
+.balance-sides { display:flex; justify-content:space-between; width:360px; }
+.balance-pan {
+  width:130px; text-align:center; transition:transform .6s;
+}
+.pan-title { font-size:0.72rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.pan-left .pan-title { color:var(--primary); }
+.pan-right .pan-title { color:var(--red); }
+.pan-box {
+  background:var(--surface); border:1.5px solid var(--border);
+  border-radius:var(--r); padding:10px 8px; min-height:80px;
+  display:flex; flex-direction:column; gap:6px; align-items:center; justify-content:center;
+}
+.pan-weight {
+  padding:4px 8px; border-radius:2px; font-size:0.72rem; font-weight:700;
+  cursor:pointer; transition:all .2s; text-align:center; width:100%;
+}
+.pw-duty { background:var(--primary-l); color:var(--primary-d); border:1px solid var(--primary); }
+.pw-harm { background:var(--red-l); color:var(--red); border:1px solid var(--red); }
+.pw-empty { background:var(--bg3); color:var(--text-d); border:1px dashed var(--border); cursor:default; }
+.balance-verdict {
+  margin-top:20px; padding:14px 20px; border-radius:var(--r);
+  text-align:center; font-weight:700; font-size:0.9rem;
+  transition:all .4s; border:1.5px solid var(--border);
+  background:var(--surface); color:var(--text-m); min-width:280px;
+}
+.balance-verdict.guilty { background:var(--red-l); border-color:var(--red); color:var(--red); }
+.balance-verdict.innocent { background:var(--green-l); border-color:var(--green); color:var(--green); }
+.formula-box {
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r);
+  padding:20px 24px; text-align:center; margin-bottom:20px;
+}
+.formula { font-family:'Noto Serif TC',serif; font-size:1rem; color:var(--text); line-height:2; }
+.formula em { color:var(--primary); font-style:normal; font-weight:700; }
+.formula .eq { color:var(--red); font-weight:700; }
+.formula .plus { color:var(--text-d); margin:0 8px; }
+.toggle-row { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; justify-content:center; }
+.toggle-chip {
+  padding:8px 16px; border-radius:var(--r); border:1.5px solid var(--border);
+  background:var(--bg3); color:var(--text-m); cursor:pointer;
+  font-family:inherit; font-size:0.8rem; font-weight:500; transition:all .2s;
+}
+.toggle-chip.on { background:var(--primary); color:white; border-color:var(--primary); }
+.toggle-chip.off { background:var(--red-l); color:var(--red); border-color:var(--red); }
+
+/* ── PANEL 6: AFTERMATH ── */
+.aftermath-meters { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+.am-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px; text-align:center; }
+.am-num { font-size:1.8rem; font-weight:700; line-height:1; margin-bottom:4px; }
+.am-lbl { font-size:0.68rem; color:var(--text-d); text-transform:uppercase; letter-spacing:1px; }
+.scenario-timeline { position:relative; padding-left:28px; }
+.scenario-timeline::before { content:''; position:absolute; left:8px; top:0; bottom:0; width:2px; background:var(--border); }
+.timeline-item { position:relative; margin-bottom:20px; }
+.timeline-item::before { content:''; position:absolute; left:-24px; top:5px; width:10px; height:10px; border-radius:50%; background:var(--border); border:2px solid var(--surface); }
+.timeline-item.active::before { background:var(--primary); }
+.timeline-item.warn::before { background:var(--amber); }
+.timeline-item.good::before { background:var(--green); }
+.timeline-item .t-day { font-size:0.68rem; color:var(--text-d); letter-spacing:1px; margin-bottom:3px; }
+.timeline-item .t-event { font-size:0.85rem; color:var(--text-m); line-height:1.6; }
+.timeline-item .t-impact { font-size:0.75rem; font-weight:700; margin-top:4px; }
+.reflect-q { background:var(--gold-l); border:1px solid var(--gold); border-radius:var(--r); padding:16px 18px; margin-bottom:12px; }
+.reflect-q .q-num { font-size:0.68rem; color:var(--gold); font-weight:700; letter-spacing:1.5px; margin-bottom:5px; }
+.reflect-q p { font-size:0.88rem; color:#4A3A10; line-height:1.7; }
+.mc-option {
+  display:flex; align-items:flex-start; gap:10px;
+  padding:11px 14px; border:1.5px solid var(--border);
+  border-radius:var(--r); cursor:pointer; transition:all .2s;
+  font-size:0.85rem; color:var(--text-m); line-height:1.6;
+  background:var(--surface);
+}
+.mc-option:hover { border-color:var(--primary); color:var(--text); }
+.mc-option.selected { border-color:var(--primary); background:var(--primary-l); color:var(--primary-d); }
+.mc-option.correct { border-color:var(--green); background:var(--green-l); color:var(--green); }
+.mc-box {
+  width:16px; height:16px; border:1.5px solid var(--border);
+  border-radius:2px; flex-shrink:0; margin-top:2px; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; font-size:.7rem;
+}
+.mc-option.selected .mc-box { border-color:var(--primary); background:var(--primary); color:white; }
+.mc-option.correct .mc-box { border-color:var(--green); background:var(--green); color:white; }
+.mc-option.correct .mc-box::after { content:'✓'; }
+.mc-option.selected .mc-box::after { content:'✓'; }
+.north-star { background:var(--primary); color:white; border-radius:var(--r); padding:20px 22px; text-align:center; margin-top:20px; }
+.north-star .ns-icon { font-size:2rem; margin-bottom:8px; }
+.north-star h3 { font-family:'Noto Serif TC',serif; font-size:1rem; margin-bottom:8px; }
+.north-star p { font-size:0.82rem; line-height:1.7; opacity:.9; }
+@media(max-width:680px){
+  .child-grid { grid-template-columns:1fr; }
+  .aftermath-meters { grid-template-columns:1fr; }
+  .balance-sides { width:100%; }
+  .balance-beam { width:200px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Teacher Screen (hidden by default, shown via ?screen=teacher) -->
+<div id="teacher-view" style="display:none;min-height:100vh;background:#F4F2EE;"></div>
+
+<!-- Student Content Wrapper -->
+<div id="student-content">
+<!-- Top Nav -->
+<nav class="top-nav">
+  <a href="https://yajung-lin.github.io/classecho-v1/classecho.html" class="back-btn">← 回課堂回聲</a>
+  <span class="nav-title">雅容老師的課堂討論 <em>✦</em> 法律倫理模擬</span>
+  <span class="case-badge">模擬沙盒</span>
+</nav>
+
+<!-- Case Header -->
+<div class="case-header">
+  <div class="case-number">CASE NO. ECE-2024-001 ｜ 幼教法律倫理課程</div>
+  <div class="case-title">幼教老師的保證人地位<br>以剴剴案為引的模擬沙盒</div>
+  <div class="case-subtitle">本模擬情境根據《兒童及少年福利與權益保障法》第53條、《刑法》第15條保證人地位不作為犯理論設計。學生將扮演幼兒園班級老師，面對疑似兒童虐待的情境，做出真實的職業倫理抉擇。</div>
+  <div class="case-meta">
+    <div class="meta-item"><span>法條依據</span><strong>刑法第15條 / 兒少權法第53條</strong></div>
+    <div class="meta-item"><span>課程目標</span><strong>理解保證人地位與通報義務</strong></div>
+    <div class="meta-item"><span>參考案例</span><strong>剴剴案（2024）</strong></div>
+  </div>
+</div>
+
+<!-- Status Bars -->
+<div class="status-panel">
+  <div class="status-item">
+    <div class="status-label">行政和諧度 <span id="admin-val">100%</span></div>
+    <div class="status-bar"><div class="status-fill fill-admin" id="admin-bar" style="width:100%"></div></div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">法律防禦力 <span id="legal-val">0%</span></div>
+    <div class="status-bar"><div class="status-fill fill-legal" id="legal-bar" style="width:0%"></div></div>
+  </div>
+  <button class="reset-btn" onclick="resetGame()">↺ 重新開始</button>
+</div>
+
+<!-- Tabs -->
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" id="tab1" onclick="goTab(1)">
+      <span class="tab-num">1</span> 職業現場觀察
+    </button>
+    <button class="tab locked" id="tab2" onclick="goTab(2)">
+      <span class="tab-num">2</span> 衝突決策 <span class="lock-icon" id="lock2">🔒</span>
+    </button>
+    <button class="tab locked" id="tab3" onclick="goTab(3)">
+      <span class="tab-num">3</span> 法律裁決 <span class="lock-icon" id="lock3">🔒</span>
+    </button>
+    <button class="tab" id="tab4" onclick="goTab(4)">
+      <span class="tab-num">4</span> 點名觀察
+    </button>
+    <button class="tab" id="tab5" onclick="goTab(5)">
+      <span class="tab-num">5</span> 責任天平
+    </button>
+    <button class="tab" id="tab6" onclick="goTab(6)">
+      <span class="tab-num">6</span> 通報後效
+    </button>
+  </div>
+</div>
+
+<!-- PANEL 1 -->
+<div class="content">
+<div class="panel active" id="panel1">
+
+  <div class="alert-box info">
+    <span class="alert-icon">ℹ</span>
+    <div>今天是星期一早晨，小明（3歲）入園。根據「幼兒入園晨間健康檢查」規定，你必須對幼兒進行身體部位檢查。請點擊下方各部位進行檢查。</div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:start;">
+
+    <!-- Body SVG -->
+    <div class="card">
+      <div class="card-title">幼兒身體檢查圖</div>
+      <div class="body-container">
+        <div class="body-wrap">
+          <svg viewBox="0 0 220 380" xmlns="http://www.w3.org/2000/svg">
+            <!-- Body outline -->
+            <ellipse cx="110" cy="50" rx="32" ry="38" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <rect x="78" y="88" width="64" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <rect x="48" y="92" width="28" height="72" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <rect x="144" y="92" width="28" height="72" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <rect x="82" y="178" width="26" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <rect x="112" y="178" width="26" height="90" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <ellipse cx="110" cy="280" rx="26" ry="12" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <rect x="82" y="268" width="26" height="50" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+            <rect x="112" y="268" width="26" height="50" rx="8" fill="#E8E4DC" stroke="#A89880" stroke-width="1.5"/>
+
+            <!-- Clickable zones -->
+            <ellipse class="body-zone" id="zone-head" cx="110" cy="50" rx="32" ry="38" onclick="checkZone('head')" data-zone="head"/>
+            <text class="zone-label" id="label-head" x="110" y="95">頭部</text>
+
+            <rect class="body-zone" id="zone-back" x="78" y="88" width="64" height="90" rx="8" onclick="checkZone('back')" data-zone="back"/>
+            <text class="zone-label" id="label-back" x="110" y="155">軀幹/背部</text>
+
+            <rect class="body-zone" id="zone-hand" x="44" y="92" width="32" height="72" rx="8" onclick="checkZone('hand')" data-zone="hand"/>
+            <text class="zone-label" id="label-hand" x="60" y="175">手臂</text>
+
+            <rect class="body-zone" id="zone-leg" x="78" y="175" width="64" height="110" rx="8" onclick="checkZone('leg')" data-zone="leg"/>
+            <text class="zone-label" id="label-leg" x="110" y="240">腿部</text>
+          </svg>
+        </div>
+      </div>
+      <div style="font-size:0.72rem;color:var(--text-d);text-align:center;">點擊各部位進行晨間檢查</div>
+    </div>
+
+    <!-- Checklist & Evidence -->
+    <div>
+      <div class="card">
+        <div class="card-title">晨間健康檢查紀錄</div>
+        <div class="check-grid" id="check-grid">
+          <div class="check-item" id="ci-head"><div class="check-dot"></div>頭部外觀</div>
+          <div class="check-item" id="ci-back"><div class="check-dot"></div>軀幹/背部</div>
+          <div class="check-item" id="ci-hand"><div class="check-dot"></div>手臂狀況</div>
+          <div class="check-item" id="ci-leg"><div class="check-dot"></div>腿部狀況</div>
+        </div>
+        <div id="alert-msg" style="display:none;">
+          <div class="alert-box danger">
+            <span class="alert-icon">⚠</span>
+            <div id="alert-text"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="evidence-card" style="display:none;">
+        <div class="card-title">證據保全</div>
+        <div class="alert-box warn">
+          <span class="alert-icon">!</span>
+          <div>發現疑似非意外傷害，依法你有義務保全證據。請完成以下步驟。</div>
+        </div>
+        <div class="evidence-actions">
+          <button class="ev-btn" id="btn-photo" onclick="takePhoto()">📷 拍照存證</button>
+          <button class="ev-btn" id="btn-note" onclick="startNote()">📝 文字紀錄</button>
+        </div>
+        <div id="note-area" style="display:none;">
+          <textarea class="note-input" id="note-text" placeholder="請描述傷痕位置、大小、顏色及幼兒的反應...&#10;例：左腿內側發現約3×2公分深紫色瘀青，形狀不規則，幼兒表示「很痛」，拒絕說明原因。"></textarea>
+          <button class="ev-btn" onclick="saveNote()" style="margin-top:8px;">確認儲存紀錄</button>
+        </div>
+        <div class="evidence-log" id="evidence-log"></div>
+        <button class="proceed-btn" id="proceed-btn" onclick="proceedToDecision()" disabled>前往衝突決策 →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PANEL 2 -->
+<div class="panel" id="panel2">
+  <div class="alert-box warn">
+    <span class="alert-icon">!</span>
+    <div>你發現疑似虐待跡象後不久，收到了來自園長與家長的訊息。請仔細閱讀，然後做出你的抉擇。你的決定將影響最終法律判決。</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">接收訊息</div>
+    <div class="msg-card principal">
+      <div class="msg-header">
+        <div class="msg-avatar av-principal">園</div>
+        <div><div class="msg-sender">王園長</div><div class="msg-role">幼兒園行政主管</div></div>
+      </div>
+      <div class="msg-body">「老師，這個家長你也知道，很難搞的那種。這件事先私下處理就好，不要去驚動社會局，免得園所被調查，大家都麻煩。你就說孩子是自己跌倒的，家長也簽了切結書了。」</div>
+    </div>
+    <div class="msg-card parent">
+      <div class="msg-header">
+        <div class="msg-avatar av-parent">家</div>
+        <div><div class="msg-sender">家長（語音轉文字）</div><div class="msg-role">小明的家長</div></div>
+      </div>
+      <div class="msg-body">「老師，孩子這個年紀就是愛跑愛跳，跌倒很正常啊。你不要想太多，這都是小事，不需要勞師動眾。而且你要是通報，我就去投訴你們園所管理不當，小心你的工作。」</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">職業抉擇</div>
+    <div class="alert-box info">
+      <span class="alert-icon">ℹ</span>
+      <div>依《兒童及少年福利與權益保障法》第53條，幼教老師屬於強制通報人員，發現兒童有受虐跡象時，<strong style="color:#7EC4E8;">應於24小時內</strong>向主管機關通報，<strong style="color:#7EC4E8;">不得有所延遲</strong>。</div>
+    </div>
+    <div class="decision-grid">
+      <button class="decision-btn legal" id="btn-report" onclick="makeDecision('report')">
+        <span class="d-icon">⚖</span>
+        <div class="d-label">選項 A</div>
+        <div class="d-title">依法通報</div>
+        <div class="d-desc">立即向社會局兒少保護專線（113）通報，同時向警察機關報案，提交照片與文字紀錄作為書面佐證。</div>
+      </button>
+      <button class="decision-btn illegal" id="btn-silent" onclick="makeDecision('silent')">
+        <span class="d-icon">🤐</span>
+        <div class="d-label">選項 B</div>
+        <div class="d-title">暫緩通報／私下溝通</div>
+        <div class="d-desc">聽從園長指示，先與家長私下溝通。相信家長說詞，認為是意外跌倒，暫時不進行官方通報。</div>
+      </button>
+    </div>
+    <div id="decision-result" style="display:none;margin-top:16px;"></div>
+    <button class="proceed-btn" id="proceed-verdict-btn" onclick="proceedToVerdict()" disabled style="margin-top:12px;">查看法律裁決 →</button>
+  </div>
+</div>
+
+<!-- PANEL 3 -->
+<div class="panel" id="panel3">
+  <div id="verdict-container"></div>
+  <div id="panel3-proceed" style="display:none;margin-top:16px;text-align:center;">
+    <button class="proceed-btn" onclick="goTab(4)" style="max-width:400px;margin:0 auto;display:block;">繼續延伸學習：點名觀察 →</button>
+  </div>
+</div>
+
+<!-- PANEL 4: ROLL CALL -->
+<div class="panel" id="panel4">
+
+  <div class="alert-box info">
+    <span class="alert-icon">ℹ</span>
+    <div>今天的班上有三位幼兒表現引起你的注意。請點擊每位孩子的卡片查看詳細描述，然後回答討論問題：<strong>哪一位孩子最符合「兒童最佳利益」的優先介入對象？</strong></div>
+  </div>
+
+  <!-- Children cards -->
+  <div class="child-grid">
+    <div class="child-card" id="cc-a" onclick="selectChild('a')">
+      <div class="child-avatar" style="background:#EEF6FF;border-color:#B5D4F4;">🧒</div>
+      <div class="child-name">孩子 A</div>
+      <span class="child-tag tag-normal">情緒異常</span>
+      <div class="child-hint">點擊查看詳情</div>
+    </div>
+    <div class="child-card" id="cc-b" onclick="selectChild('b')">
+      <div class="child-avatar" style="background:#FFF8E6;border-color:#F5D68A;">👦</div>
+      <div class="child-name">孩子 B</div>
+      <span class="child-tag tag-alert">身體徵兆</span>
+      <div class="child-hint">點擊查看詳情</div>
+    </div>
+    <div class="child-card critical" id="cc-c" onclick="selectChild('c')">
+      <div class="child-avatar" style="background:#F5E0E0;border-color:#C8A0A0;">😶</div>
+      <div class="child-name">孩子 C（剴剴化身）</div>
+      <span class="child-tag tag-alert">多重警訊</span>
+      <div class="child-hint">點擊查看詳情</div>
+    </div>
+  </div>
+
+  <!-- Detail panels -->
+  <div id="cd-a" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:16px;">
+    <h3 style="font-family:'Noto Serif TC',serif;font-size:.88rem;color:var(--gold);margin-bottom:10px;">孩子 A ── 情緒行為觀察</h3>
+    <p style="font-size:.85rem;color:var(--text-m);line-height:1.8;margin-bottom:8px;">今天整個早上，孩子 A 異常安靜，幾乎沒有主動說話。平時活潑的她在晨圈時間一言不發，午餐吃得很少，老師問她怎麼了，她只是搖頭。</p>
+    <p style="font-size:.85rem;color:var(--text-m);line-height:1.8;margin-bottom:8px;"><strong>老師的初步判斷：</strong>可能是家裡發生了什麼事，或者昨晚睡眠不足。因為沒有明顯外傷，暫時觀察。</p>
+    <div class="alert-box warn"><span class="alert-icon">思考</span><div>情緒異常是兒童受虐的常見信號之一，但也可能有其他原因。這個案例的問題在於：<strong>「沒有明顯外傷」是否等於「沒有危險」？</strong></div></div>
+  </div>
+
+  <div id="cd-b" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:16px;">
+    <h3 style="font-family:'Noto Serif TC',serif;font-size:.88rem;color:var(--gold);margin-bottom:10px;">孩子 B ── 身體傷痕評估</h3>
+    <p style="font-size:.85rem;color:var(--text-m);line-height:1.8;margin-bottom:8px;">換衣服時，老師發現孩子 B 的手腕內側有幾個淡淡的紅點，呈點狀分佈，不像一般抓傷或碰傷的形狀。</p>
+    <p style="font-size:.85rem;color:var(--text-m);line-height:1.8;margin-bottom:8px;"><strong>家長昨天接孩子時說：</strong>「最近家裡蚊子很多，有點蚊子叮到，沒關係的。」</p>
+    <p style="font-size:.85rem;color:var(--text-m);line-height:1.8;margin-bottom:8px;"><strong>老師的初步判斷：</strong>家長說是蚊子叮，位置也說得通，先相信家長的說法。</p>
+    <div class="alert-box warn"><span class="alert-icon">思考</span><div>手腕內側是蚊子不容易叮到的位置，且點狀分佈不符合蚊蟲叮咬特徵。這個案例示範了<strong>「家長解釋」如何影響老師的判斷</strong>，可能形成通報障礙。</div></div>
+  </div>
+
+  <div id="cd-c" style="display:none;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 22px;margin-bottom:16px;">
+    <h3 style="font-family:'Noto Serif TC',serif;font-size:.88rem;color:var(--gold);margin-bottom:10px;">孩子 C ── 複合警訊評估（剴剴化身）</h3>
+    <p style="font-size:.85rem;color:var(--text-m);line-height:1.8;margin-bottom:8px;">孩子 C 最近三週以來持續出現以下異常：眼神空洞，對玩伴沒有反應，即使有人叫他名字也不回頭；自由遊戲時間只坐在角落，不主動拿任何玩具；午餐狼吞虎嚥，像是很久沒吃東西；衣服換下來時，發現背部有新舊交雜的痕跡，但孩子拒絕讓老師靠近。</p>
+    <p style="font-size:.85rem;color:var(--text-m);line-height:1.8;margin-bottom:8px;"><strong>家長的說法：</strong>孩子本來就比較內向，家裡最近在裝修，比較吵，孩子睡眠不好。</p>
+    <div class="alert-box danger"><span class="alert-icon">⚠</span><div>這是<strong>多重持續性警訊</strong>的典型案例。單一事件或許可用其他原因解釋，但長達數週的複合異常，加上身體傷痕，已達到強制通報的門檻。剴剴案的核心悲劇，正是每一個警訊都被單獨解釋，而不是整體評估。</div></div>
+  </div>
+
+  <!-- Discussion -->
+  <div class="card">
+    <div class="card-title">課堂討論</div>
+
+    <div class="discuss-q">
+      <div class="q-label">討論題 1</div>
+      <p>以「兒童最佳利益」為核心，你認為哪一位孩子應該優先介入？請說明你的判斷邏輯。</p>
+    </div>
+
+    <div style="margin-bottom:12px;font-size:0.82rem;color:var(--text-m);">你的投票（供課堂即時討論用）：</div>
+    <div class="priority-vote">
+      <button class="pv-btn" onclick="votePriority('a')">孩子 A（情緒異常）</button>
+      <button class="pv-btn" onclick="votePriority('b')">孩子 B（手腕紅點）</button>
+      <button class="pv-btn" onclick="votePriority('c')">孩子 C（複合警訊）</button>
+    </div>
+
+    <div class="vote-result" id="vote-result">
+      <div style="font-size:0.78rem;color:var(--text-d);margin-bottom:10px;">班級投票結果（模擬）</div>
+      <div class="vote-bar-wrap"><div class="vote-bar-label">孩子 A</div><div class="vote-bar-track"><div class="vote-bar-fill" id="vb-a" style="width:0%"></div></div><div class="vote-count" id="vc-a">0</div></div>
+      <div class="vote-bar-wrap"><div class="vote-bar-label">孩子 B</div><div class="vote-bar-track"><div class="vote-bar-fill" id="vb-b" style="width:0%"></div></div><div class="vote-count" id="vc-b">0</div></div>
+      <div class="vote-bar-wrap"><div class="vote-bar-label">孩子 C</div><div class="vote-bar-track"><div class="vote-bar-fill" id="vb-c" style="width:0%"></div></div><div class="vote-count" id="vc-c">0</div></div>
+    </div>
+
+    <div class="discuss-q" style="margin-top:16px;">
+      <div class="q-label">討論題 2</div>
+      <p>為什麼幼教老師的「保證人地位」比一般路人更重？請選出你認為正確的原因：</p>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+        <label class="mc-option" id="mc-a" onclick="checkMC('a')">
+          <span class="mc-box" id="mcb-a"></span>
+          <span>幼教老師與幼兒之間存在職業照顧契約，在幼兒園期間負有法定照顧責任</span>
+        </label>
+        <label class="mc-option" id="mc-b" onclick="checkMC('b')">
+          <span class="mc-box" id="mcb-b"></span>
+          <span>幼教老師具備觀察幼兒異常的專業能力，且每天近距離接觸幼兒，有能力察覺傷害</span>
+        </label>
+        <label class="mc-option" id="mc-c" onclick="checkMC('c')">
+          <span class="mc-box" id="mcb-c"></span>
+          <span>《兒童及少年福利與權益保障法》第53條明文規定幼教老師為強制通報義務人</span>
+        </label>
+      </div>
+      <div id="mc-result" style="display:none;margin-top:12px;"></div>
+    </div>
+  </div>
+  <button class="proceed-btn" onclick="goTab(5)" style="max-width:400px;margin:0 auto;display:block;">前往分頁五：法律責任天平 →</button>
+</div>
+
+<!-- PANEL 5: BALANCE -->
+<div class="panel" id="panel5">
+
+  <div class="formula-box">
+    <div style="font-size:0.72rem;color:var(--text-d);letter-spacing:2px;margin-bottom:12px;">不作為犯法理公式</div>
+    <div class="formula">
+      <em>保證人地位</em>
+      <span class="plus">＋</span>
+      <em>有能力防止</em>
+      <span class="plus">＋</span>
+      <em>未防止結果</em>
+      <span class="eq"> ＝ 與積極犯罪行為人同罪</span>
+    </div>
+    <div style="font-size:0.75rem;color:var(--text-d);margin-top:10px;">《刑法》第15條第1項</div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">互動式法律責任天平</div>
+    <div class="alert-box info" style="margin-bottom:16px;">
+      <span class="alert-icon">ℹ</span>
+      <div>請切換下方的「老師行為」開關，觀察天平如何變化，理解老師的作為或不作為如何直接影響法律責任的歸屬。</div>
+    </div>
+
+    <!-- Toggle controls -->
+    <div style="font-size:0.78rem;color:var(--text-m);margin-bottom:8px;font-weight:700;">老師的行動選擇：</div>
+    <div class="toggle-row">
+      <button class="toggle-chip" id="tc-observe" onclick="toggleDuty('observe')">觀察並記錄傷勢</button>
+      <button class="toggle-chip" id="tc-photo" onclick="toggleDuty('photo')">拍照存證</button>
+      <button class="toggle-chip" id="tc-report" onclick="toggleDuty('report')">依法通報</button>
+    </div>
+
+    <!-- Balance visual -->
+    <div class="balance-wrap">
+      <!-- SVG Balance -->
+      <svg id="balance-svg" viewBox="0 0 400 260" width="100%" style="max-width:480px;">
+        <!-- Stand -->
+        <rect x="194" y="160" width="12" height="80" rx="4" fill="#A89880"/>
+        <rect x="154" y="234" width="92" height="10" rx="4" fill="#A89880"/>
+        <!-- Pivot -->
+        <circle cx="200" cy="158" r="8" fill="#8A7A6A"/>
+        <!-- Beam - rotates -->
+        <g id="beam-group" style="transform-origin:200px 158px;transition:transform .6s cubic-bezier(.4,0,.2,1);">
+          <rect x="60" y="154" width="280" height="8" rx="4" fill="#6A5A4A"/>
+          <!-- Left string -->
+          <line x1="80" y1="162" x2="80" y2="195" stroke="#8A7A6A" stroke-width="2"/>
+          <!-- Right string -->
+          <line x1="320" y1="162" x2="320" y2="195" stroke="#8A7A6A" stroke-width="2"/>
+          <!-- Left pan -->
+          <rect x="44" y="195" width="72" height="8" rx="4" fill="#8A7A6A"/>
+          <!-- Right pan -->
+          <rect x="284" y="195" width="72" height="8" rx="4" fill="#8A7A6A"/>
+        </g>
+        <!-- Labels -->
+        <text x="80" y="220" text-anchor="middle" font-size="10" fill="#2A5F8A" font-weight="700" font-family="Noto Sans TC,sans-serif">義務履行</text>
+        <text x="80" y="234" text-anchor="middle" font-size="9" fill="#2A5F8A" font-family="Noto Sans TC,sans-serif">→ 無罪</text>
+        <text x="320" y="220" text-anchor="middle" font-size="10" fill="#8A2A2A" font-weight="700" font-family="Noto Sans TC,sans-serif">兒童受害</text>
+        <text x="320" y="234" text-anchor="middle" font-size="9" fill="#8A2A2A" font-family="Noto Sans TC,sans-serif">→ 有罪</text>
+      </svg>
+
+      <!-- Pan contents -->
+      <div style="display:flex;justify-content:space-between;width:100%;max-width:480px;margin-top:4px;">
+        <div style="width:130px;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--primary);margin-bottom:6px;text-align:center;">老師的義務</div>
+          <div style="display:flex;flex-direction:column;gap:5px;" id="pan-left-items">
+            <div class="pan-weight pw-empty" id="pw-observe">未執行觀察</div>
+            <div class="pan-weight pw-empty" id="pw-photo">未存證</div>
+            <div class="pan-weight pw-empty" id="pw-report">未通報</div>
+          </div>
+        </div>
+        <div style="width:130px;">
+          <div style="font-size:0.72rem;font-weight:700;color:var(--red);margin-bottom:6px;text-align:center;">兒童受害結果</div>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <div class="pan-weight pw-harm">持續受虐</div>
+            <div class="pan-weight pw-harm">延誤救援</div>
+            <div class="pan-weight pw-harm">無法追訴</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="balance-verdict" id="balance-verdict" style="margin-top:16px;">
+        請切換上方開關查看天平變化
+      </div>
+    </div>
+
+    <div class="discuss-q" style="margin-top:16px;">
+      <div class="q-label">關鍵概念</div>
+      <p>「我只要沒打小孩，我就沒罪。」——這是幼教學生最常見的法律誤解。刑法第15條告訴我們：<strong>不作為也是一種犯罪行為</strong>，當你有義務防止傷害卻選擇沉默，你的不行動就等於一種積極的傷害。</p>
+    </div>
+  </div>
+  <button class="proceed-btn" onclick="goTab(6)" style="max-width:400px;margin:0 auto;display:block;">前往分頁六：通報後效與反思 →</button>
+</div>
+
+<!-- PANEL 6: AFTERMATH -->
+<div class="panel" id="panel6">
+
+  <div class="alert-box warn">
+    <span class="alert-icon">!</span>
+    <div>你依法通報了，但後來調查發現孩子的傷真的是意外跌倒。家長憤怒，認為你破壞了家庭隱私，開始向園所施壓。這個情境模擬通報後的現實代價。</div>
+  </div>
+
+  <!-- Stress checklist replacing abstract meters -->
+  <div class="card">
+    <div class="card-title">通報後的真實代價清單</div>
+    <div style="font-size:0.82rem;color:var(--text-m);margin-bottom:14px;">以下是通報後可能發生的真實情境。<strong>請勾選哪些讓你感到最大的壓力：</strong></div>
+    <div style="display:flex;flex-direction:column;gap:8px;" id="stress-list">
+      <label class="mc-option" onclick="toggleStress(this)"><span class="mc-box"></span><span>家長來園所當面質問你，情緒激動，指責你破壞家庭名譽</span></label>
+      <label class="mc-option" onclick="toggleStress(this)"><span class="mc-box"></span><span>園長私下找你談話，暗示「下次通報前先跟我說」</span></label>
+      <label class="mc-option" onclick="toggleStress(this)"><span class="mc-box"></span><span>同事開始與你保持距離，認為你「愛惹麻煩」</span></label>
+      <label class="mc-option" onclick="toggleStress(this)"><span class="mc-box"></span><span>家長向教育局投訴，你必須寫書面說明</span></label>
+      <label class="mc-option" onclick="toggleStress(this)"><span class="mc-box"></span><span>後來證明是誤會，你開始懷疑自己的判斷力</span></label>
+      <label class="mc-option" onclick="toggleStress(this)"><span class="mc-box"></span><span>孩子確認安全，但你感到精疲力竭，開始思考是否值得</span></label>
+    </div>
+    <div id="stress-result" style="display:none;margin-top:14px;padding:12px 16px;background:var(--green-l);border:1px solid var(--green);border-radius:var(--r);font-size:0.82rem;color:#1A5A30;line-height:1.7;">
+      ✓ 這些壓力是真實的，也是幼教老師在履行保證人義務時必須面對的職業代價。但《兒少權法》第53條明定，善意通報者不負任何法律責任，這條法律是為了讓你能夠無後顧之憂地守護兒童而存在。
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="card">
+    <div class="card-title">通報後事件時間軸</div>
+    <div class="scenario-timeline">
+      <div class="timeline-item active">
+        <div class="t-day">通報後 第1天</div>
+        <div class="t-event">社會局接獲通報，進行家訪調查。孩子確認無虞，傷是在公園玩耍時跌倒造成。</div>
+        <div class="t-impact" style="color:var(--green);">✓ 兒童安全獲得確認</div>
+      </div>
+      <div class="timeline-item warn">
+        <div class="t-day">通報後 第3天</div>
+        <div class="t-event">家長來園所理論，表示「你這樣亂通報，害我們被社會局調查，鄰居都以為我們虐待小孩！」</div>
+        <div class="t-impact" style="color:var(--amber);">⚠ 職業壓力上升</div>
+      </div>
+      <div class="timeline-item warn">
+        <div class="t-day">通報後 第5天</div>
+        <div class="t-event">園長私下找你談話：「老師，你通報之前能不能先跟我說一聲？弄得大家都很緊張。」</div>
+        <div class="t-impact" style="color:var(--amber);">⚠ 行政壓力增加</div>
+      </div>
+      <div class="timeline-item good">
+        <div class="t-day">通報後 第14天</div>
+        <div class="t-event">社會局結案，確認這是一起善意通報。主任秘書致電表達感謝，表示像這樣的通報有助於建立兒少保護網絡。</div>
+        <div class="t-impact" style="color:var(--green);">✓ 專業認可，法律保護成立</div>
+      </div>
+      <div class="timeline-item good">
+        <div class="t-day">通報後 第30天</div>
+        <div class="t-event">家長漸漸理解老師是出於關心，在接孩子時主動道謝：「謝謝你當時認真對待我們家孩子。」</div>
+        <div class="t-impact" style="color:var(--green);">✓ 親師關係修復</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reflection -->
+  <div class="card">
+    <div class="card-title">互動反思題</div>
+
+    <!-- Q1 -->
+    <div class="reflect-q">
+      <div class="q-num">反思題 1</div>
+      <p>你通報後發現是誤會，短期承受了家長的憤怒與園長的壓力。如果重來一次，<strong>你還會通報嗎？</strong></p>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="pv-btn" id="r1-yes" onclick="answerQ1('yes')">會通報</button>
+        <button class="pv-btn" id="r1-no" onclick="answerQ1('no')">不會通報</button>
+      </div>
+      <div id="r1-slider-area" style="display:none;margin-top:16px;">
+        <div style="font-size:0.8rem;color:var(--text-m);margin-bottom:6px;">這個代價「值得」的程度：</div>
+        <div class="alert-box info" style="margin-bottom:8px;padding:7px 12px;font-size:0.75rem;">
+          <span class="alert-icon">↔</span><div>請移動下方滑桿，呈現你心中的比重</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:0.75rem;color:var(--text-d);white-space:nowrap;">完全不值得</span>
+          <input type="range" id="r1-worth" min="0" max="100" value="50" step="1" style="flex:1;" oninput="updateSliderLabel('r1-worth','r1-worth-val')">
+          <span style="font-size:0.75rem;color:var(--text-d);white-space:nowrap;">非常值得</span>
+          <span id="r1-worth-val" style="font-weight:700;font-size:0.9rem;color:var(--primary);min-width:36px;text-align:right;">50</span>
+        </div>
+      </div>
+      <div id="r1-response" style="display:none;margin-top:10px;"></div>
+    </div>
+
+    <!-- Q2-1 -->
+    <div class="reflect-q">
+      <div class="q-num">反思題 2</div>
+      <p>家長介入調查，老師面臨離職風險。在這個情境下，你如何看待「保住孩子的安全」與「保住自己的工作」之間的比重？</p>
+      <div style="margin-top:14px;">
+        <div class="alert-box info" style="margin-bottom:8px;padding:7px 12px;font-size:0.75rem;"><span class="alert-icon">↔</span><div>請移動滑桿，呈現你心中兩者的比重</div></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;font-weight:700;margin-bottom:6px;">
+          <span style="color:var(--green);">保住孩子安全</span>
+          <span style="color:var(--red);">保住自己工作</span>
+        </div>
+        <input type="range" id="r21-slider" min="0" max="100" value="50" step="1" style="width:100%;" oninput="updateR21()">
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-top:6px;">
+          <span id="r21-child-val" style="color:var(--green);font-weight:700;">50%</span>
+          <span id="r21-job-val" style="color:var(--red);font-weight:700;">50%</span>
+        </div>
+        <div id="r21-comment" style="margin-top:10px;font-size:0.8rem;color:var(--text-m);padding:8px 12px;background:var(--bg3);border-radius:var(--r);border-left:2px solid var(--border);"></div>
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="reflect-q">
+      <div class="q-num">反思題 3</div>
+      <p>通報後你承受了家長憤怒、園長壓力與同事眼光，但這個孩子確認安全了。「讓這個孩子繼續平安」這件事，在你的<strong>職業意義天平</strong>上，重量是多少？</p>
+      <div style="margin-top:14px;">
+        <div class="alert-box info" style="margin-bottom:8px;padding:7px 12px;font-size:0.75rem;"><span class="alert-icon">↔</span><div>請移動滑桿，呈現你心中的感受</div></div>
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;font-weight:700;margin-bottom:6px;">
+          <span style="color:var(--text-d);">對我來說幾乎沒有意義</span>
+          <span style="color:var(--primary);">是我從事幼教的核心意義</span>
+        </div>
+        <input type="range" id="r2-slider" min="0" max="100" value="70" step="1" style="width:100%;" oninput="updateR2()">
+        <div style="text-align:center;margin-top:8px;">
+          <span id="r2-val" style="font-size:1.4rem;font-weight:700;color:var(--primary);">70</span>
+          <span style="font-size:0.78rem;color:var(--text-d);"> / 100</span>
+        </div>
+        <div id="r2-comment" style="margin-top:8px;font-size:0.8rem;color:var(--text-m);padding:8px 12px;background:var(--bg3);border-radius:var(--r);border-left:2px solid var(--border);"></div>
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="reflect-q">
+      <div class="q-num">反思題 4</div>
+      <p>身為幼教老師，以下三個向度在你心中的比重各是多少？（三者合計請自行斟酌，無需加總至100%）</p>
+      <div class="alert-box info" style="margin:10px 0 4px;padding:7px 12px;font-size:0.75rem;"><span class="alert-icon">↔</span><div>請分別移動三個滑桿，呈現你心中各向度的比重</div></div>
+      <div style="margin-top:14px;display:flex;flex-direction:column;gap:14px;">
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:0.82rem;font-weight:700;color:var(--primary);">兒童最佳利益</span>
+            <span id="r3-child-val" style="font-size:0.9rem;font-weight:700;color:var(--primary);">80%</span>
+          </div>
+          <input type="range" id="r3-child" min="0" max="100" value="80" step="5" style="width:100%;" oninput="document.getElementById('r3-child-val').textContent=this.value+'%';updateR3()">
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:0.82rem;font-weight:700;color:var(--amber);">行政和諧</span>
+            <span id="r3-admin-val" style="font-size:0.9rem;font-weight:700;color:var(--amber);">30%</span>
+          </div>
+          <input type="range" id="r3-admin" min="0" max="100" value="30" step="5" style="width:100%;" oninput="document.getElementById('r3-admin-val').textContent=this.value+'%';updateR3()">
+        </div>
+
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
+            <span style="font-size:0.82rem;font-weight:700;color:var(--gold);">親師關係</span>
+            <span id="r3-parent-val" style="font-size:0.9rem;font-weight:700;color:var(--gold);">40%</span>
+          </div>
+          <input type="range" id="r3-parent" min="0" max="100" value="40" step="5" style="width:100%;" oninput="document.getElementById('r3-parent-val').textContent=this.value+'%';updateR3()">
+        </div>
+
+        <div id="r3-result" style="padding:12px 16px;background:var(--bg3);border-radius:var(--r);border-left:3px solid var(--primary);font-size:0.82rem;color:var(--text-m);line-height:1.7;"></div>
+      </div>
+    </div>
+
+    <div class="alert-box info" style="margin-top:4px;">
+      <span class="alert-icon">法</span>
+      <div>《兒童及少年福利與權益保障法》第53條第6項明定：<strong>通報人之身分資料應予保密，且善意通報者不負任何法律責任。</strong>這條法律存在的目的，是為了讓每一位保證人能夠無後顧之憂地守護兒童。</div>
+    </div>
+
+    <div class="north-star">
+      <div class="ns-icon">✦</div>
+      <h3>北極星原則</h3>
+      <p>當你面對行政壓力、家長威脅、職業倦怠的三重拉扯時，只需要問一個問題：<br><strong>「如果這個孩子真的在受苦，而我選擇沉默，我能承擔那個重量嗎？」</strong></p>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+
+</div><!-- /student-content -->
+
+<!-- Overlay: Alert Found -->
+<div class="overlay" id="overlay-alert">
+  <div class="overlay-card">
+    <div class="overlay-title">⚠ 發現異常！</div>
+    <div class="overlay-body" id="overlay-alert-body"></div>
+    <button class="overlay-close" onclick="closeOverlay('overlay-alert')">我瞭解，進行後續處置</button>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════
+// FIREBASE CONFIG
+// ════════════════════════════
+const FB = 'https://classecho-v1-default-rtdb.asia-southeast1.firebasedatabase.app';
+const IS_TEACHER = new URLSearchParams(window.location.search).get('screen') === 'teacher';
+
+// 產生學生匿名 ID（同一瀏覽器同一 ID）
+function getStudentId() {
+  let id = sessionStorage.getItem('sandbox_id');
+  if (!id) { id = 'S' + Date.now().toString(36) + Math.random().toString(36).slice(2,6); sessionStorage.setItem('sandbox_id', id); }
+  return id;
+}
+
+async function fbPush(path, data) {
+  if (!FB) return;
+  try {
+    await fetch(`${FB}/sandbox/${path}/${getStudentId()}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...data, ts: Date.now() })
+    });
+  } catch(e) {}
+}
+
+async function fbGetAll(path) {
+  try {
+    const r = await fetch(`${FB}/sandbox/${path}.json`);
+    const d = await r.json();
+    return d ? Object.values(d) : [];
+  } catch(e) { return []; }
+}
+
+// ════════════════════════════
+// STATE
+// ════════════════════════════
+const S = {
+  admin: 100,
+  legal: 0,
+  checked: { head:false, back:false, hand:false, leg:false },
+  alertFound: false,
+  photoTaken: false,
+  noteSaved: false,
+  decision: null,
+  currentTab: 1,
+  tab2Unlocked: false,
+  tab3Unlocked: false,
+};
+
+const EVENTS = {
+  leg: {
+    normal: false,
+    alert: true,
+    msg: '左腿內側發現深紫色不規則瘀青（約3×2公分），顏色深、邊緣不均，與一般跌倒瘀青不符，疑似鈍器傷。幼兒對觸碰有痛苦反應，且拒絕說明受傷原因。'
+  }
+};
+
+// ════════════════════════════
+// TABS
+// ════════════════════════════
+function goTab(n) {
+  if (n === 2 && !S.tab2Unlocked) return;
+  if (n === 3 && !S.tab3Unlocked) return;
+  S.currentTab = n;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel'+n).classList.add('active');
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i+1 === n));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function unlockTab(n) {
+  if (n === 2) S.tab2Unlocked = true;
+  if (n === 3) S.tab3Unlocked = true;
+  const tab = document.getElementById('tab'+n);
+  tab.classList.remove('locked');
+  const lock = document.getElementById('lock'+n);
+  if (lock) lock.remove();
+}
+
+// ════════════════════════════
+// STATUS BARS
+// ════════════════════════════
+function updateBars() {
+  S.admin = Math.max(0, Math.min(100, S.admin));
+  S.legal = Math.max(0, Math.min(100, S.legal));
+  document.getElementById('admin-bar').style.width = S.admin + '%';
+  document.getElementById('legal-bar').style.width = S.legal + '%';
+  document.getElementById('admin-val').textContent = S.admin + '%';
+  document.getElementById('legal-val').textContent = S.legal + '%';
+}
+
+// ════════════════════════════
+// PANEL 1: CHECK ZONES
+// ════════════════════════════
+function checkZone(zone) {
+  if (S.checked[zone]) return;
+  S.checked[zone] = true;
+
+  const zoneEl = document.getElementById('zone-'+zone);
+  const ci = document.getElementById('ci-'+zone);
+
+  if (zone === 'leg' && EVENTS.leg.alert) {
+    // Trigger alert event
+    S.alertFound = true;
+    zoneEl.classList.add('alert');
+    ci.classList.add('alert');
+    ci.querySelector('.check-dot').style.background = 'currentColor';
+
+    document.getElementById('alert-msg').style.display = 'block';
+    document.getElementById('alert-text').textContent = '⚠ ' + EVENTS.leg.msg;
+    document.getElementById('evidence-card').style.display = 'block';
+
+    document.getElementById('overlay-alert-body').textContent = EVENTS.leg.msg;
+    openOverlay('overlay-alert');
+
+    S.legal += 10;
+    updateBars();
+  } else {
+    zoneEl.classList.add('checked');
+    ci.classList.add('done');
+  }
+
+  checkAllDone();
+}
+
+function checkAllDone() {
+  const allChecked = Object.values(S.checked).every(v => v);
+  if (allChecked && !S.alertFound) {
+    setTimeout(() => alert('所有部位檢查完畢，未發現異常。'), 300);
+  }
+}
+
+// ════════════════════════════
+// PANEL 1: EVIDENCE
+// ════════════════════════════
+function takePhoto() {
+  if (S.photoTaken) return;
+  S.photoTaken = true;
+  const btn = document.getElementById('btn-photo');
+  btn.classList.add('done');
+  btn.textContent = '✓ 照片已存證';
+  addLog('success', '拍照存證完成。照片已加入電子病歷，時間戳記：' + new Date().toLocaleTimeString('zh-TW'));
+  S.legal += 20;
+  updateBars();
+  checkEvidenceDone();
+}
+
+function startNote() {
+  document.getElementById('note-area').style.display = 'block';
+  document.getElementById('note-text').focus();
+}
+
+function saveNote() {
+  const text = document.getElementById('note-text').value.trim();
+  if (!text || text.length < 10) {
+    alert('請輸入較詳細的文字描述（至少10字）');
+    return;
+  }
+  S.noteSaved = true;
+  const btn = document.getElementById('btn-note');
+  btn.classList.add('done');
+  btn.textContent = '✓ 紀錄已儲存';
+  document.getElementById('note-area').style.display = 'none';
+  addLog('success', '文字紀錄儲存完成。內容：「' + text.slice(0,40) + (text.length>40?'…':'') + '」');
+  S.legal += 25;
+  updateBars();
+  checkEvidenceDone();
+}
+
+function addLog(type, text) {
+  const log = document.getElementById('evidence-log');
+  const item = document.createElement('div');
+  item.className = 'log-item ' + type;
+  const time = new Date().toLocaleTimeString('zh-TW');
+  item.innerHTML = `<span class="log-time">[${time}]</span>${text}`;
+  log.appendChild(item);
+}
+
+function checkEvidenceDone() {
+  if (S.photoTaken && S.noteSaved) {
+    document.getElementById('proceed-btn').disabled = false;
+    addLog('success', '證據保全完成。你已具備法律防禦的基礎條件。');
+  } else if (S.photoTaken || S.noteSaved) {
+    document.getElementById('proceed-btn').disabled = false;
+    addLog('warn', '部分證據已保全，建議完成所有步驟以強化法律防禦力。');
+  }
+}
+
+function proceedToDecision() {
+  unlockTab(2);
+  goTab(2);
+}
+
+// ════════════════════════════
+// PANEL 2: DECISION
+// ════════════════════════════
+function makeDecision(choice) {
+  if (S.decision) return;
+  S.decision = choice;
+
+  const btnReport = document.getElementById('btn-report');
+  const btnSilent = document.getElementById('btn-silent');
+  btnReport.disabled = true;
+  btnSilent.disabled = true;
+
+  const resultEl = document.getElementById('decision-result');
+  resultEl.style.display = 'block';
+
+  if (choice === 'report') {
+    S.admin -= 40;
+    S.legal += 45;
+    btnReport.classList.add('chosen');
+    resultEl.innerHTML = `<div class="alert-box success"><span class="alert-icon">✓</span><div>你選擇了依法通報。行政和諧度下降，但你的法律防禦力大幅提升。園長和家長都表達不滿，但你已履行了法律賦予的義務。</div></div>`;
+  } else {
+    S.admin += 0;
+    S.legal -= 30;
+    btnSilent.classList.add('chosen');
+    resultEl.innerHTML = `<div class="alert-box danger"><span class="alert-icon">⚠</span><div>你選擇了暫緩通報。表面上維持了職場和諧，但法律風險正在累積。依刑法第15條，具保證人地位者若不作為，可能面臨與積極傷害相同的刑責。</div></div>`;
+  }
+
+  updateBars();
+  document.getElementById('proceed-verdict-btn').disabled = false;
+  fbPush('p2_decision', { choice });
+}
+
+function proceedToVerdict() {
+  unlockTab(3);
+  buildVerdict();
+  goTab(3);
+}
+
+// ════════════════════════════
+// PANEL 3: VERDICT
+// ════════════════════════════
+function buildVerdict() {
+  const hasRecord = S.photoTaken || S.noteSaved;
+  const hasReport = S.decision === 'report';
+
+  let type, title, text, laws, reason, sig;
+
+  if (!hasRecord && !hasReport) {
+    type = 'guilty';
+    title = '有　罪';
+    text = 'guilty';
+    reason = [
+      '被告身為幼兒園教師，依法對園內幼兒具有保護義務，依刑法第15條，應認定其處於「保證人地位」。',
+      '被告於發現幼兒小明腿部疑似非意外傷害時，既未留存任何書面或影像紀錄，亦未依《兒童及少年福利與權益保障法》第53條規定進行通報。',
+      '被告之不作為，使小明持續暴露於危險環境中，依刑法第15條第1項，不作為犯之成立不以積極行為為限，有防止義務者之不作為，與積極行為具同等可罰性。',
+      '爰依刑法第15條、第277條，判決有罪。'
+    ];
+    laws = [
+      '刑法第15條（不作為犯）：「對於犯罪結果之發生，法律上有防止之義務，能防止而不防止者，與因積極行為發生結果者同。」',
+      '兒少權法第53條：義務通報人發現兒童有受虐跡象，應立即通報，不得超過二十四小時。'
+    ];
+    sig = '量刑建議：有期徒刑六個月，緩刑兩年，義務接受兒少保護相關訓練。';
+  } else if (hasRecord && !hasReport) {
+    type = 'guilty-negligent';
+    title = '有罪（過失）';
+    text = 'guilty-negligent';
+    reason = [
+      '被告雖已對幼兒小明之傷勢進行拍照存證及書面紀錄，顯示其主觀上已察覺異常。',
+      '然被告未依《兒童及少年福利與權益保障法》第53條之規定，於二十四小時內向主管機關通報，致使法定義務未能完成。',
+      '察覺義務與通報義務為相互獨立之法律要件，被告完成前者卻怠於履行後者，構成過失不作為。',
+      '爰依兒少權法第100條裁罰，並認定被告具過失責任。'
+    ];
+    laws = [
+      '兒少權法第53條：義務通報人應立即通報，不得超過二十四小時。',
+      '兒少權法第100條：違反通報義務者，處新臺幣六千元以上三萬元以下罰鍰。',
+      '刑法第15條：保證人地位義務，察覺後仍有積極保護義務。'
+    ];
+    sig = '量刑建議：行政罰鍰新臺幣一萬五千元，並命令接受六小時兒少保護專業訓練。';
+  } else {
+    type = 'innocent';
+    title = '無　罪';
+    text = 'innocent';
+    reason = [
+      '被告於發現幼兒小明腿部傷勢後，立即進行照片存證及詳細書面紀錄，確實履行了證據保全義務。',
+      '被告在面對園長施壓及家長威脅的困境下，仍依法於二十四小時內向社會局兒少保護專線通報，充分履行了《兒童及少年福利與權益保障法》第53條所定之強制通報義務。',
+      '被告之行為符合《兒童權利公約》所揭示「兒童最佳利益」之原則，且具備完整書面證據，足以排除家長反誣告之指控。',
+      '本院認定被告已善盡保證人之保護義務，判決無罪。'
+    ];
+    laws = [
+      '刑法第15條（保證人地位）：被告已善盡防止結果發生之義務。',
+      '兒少權法第53條：被告依法完成通報義務，程序合法。',
+      '兒童權利公約第3條：兒童最佳利益原則，被告行為符合本原則。'
+    ];
+    sig = '本院特別指出：面對行政壓力仍能依法行事，是幼教專業人員法律素養之最佳展現。';
+  }
+
+  document.getElementById('verdict-container').innerHTML = buildVerdictHTML(type, title, text, reason, laws, sig, hasRecord, hasReport);
+  document.getElementById('panel3-proceed').style.display = 'block';
+}
+
+function buildVerdictHTML(type, title, text, reason, laws, sig, hasRecord, hasReport) {
+  const wm = (type === 'innocent') ? '無罪' : '有罪';
+  const wmClass = (type === 'innocent') ? 'innocent' : 'guilty';
+  return `
+    <div class="verdict-paper ${type}">
+      <div class="verdict-watermark ${wmClass}">${wm}</div>
+      <div class="court-header">
+        <div class="court-title">模擬法庭判決書</div>
+        <div class="court-case">案號：ECE-2024-001</div>
+        <div class="court-case" style="font-size:.82rem;color:var(--text-d);">被告：幼兒園班級教師（模擬身份）</div>
+      </div>
+
+      <div class="verdict-result">
+        <div class="verdict-label">本院判決</div>
+        <div class="verdict-text ${text}">${title}</div>
+      </div>
+
+      <div class="verdict-section">
+        <h3>判決理由</h3>
+        ${reason.map(r => `<p>${r}</p>`).join('')}
+      </div>
+
+      <div class="verdict-section">
+        <h3>引用法條</h3>
+        ${laws.map(l => `<div class="law-cite">${l}</div>`).join('')}
+      </div>
+
+      <div class="verdict-section">
+        <h3>你的行動紀錄</h3>
+        <p>✦ 拍照存證：<strong style="color:${S.photoTaken?'var(--green)':'var(--red)'};">${S.photoTaken?'✓ 已完成':'✗ 未完成'}</strong></p>
+        <p>✦ 文字紀錄：<strong style="color:${S.noteSaved?'var(--green)':'var(--red)'};">${S.noteSaved?'✓ 已完成':'✗ 未完成'}</strong></p>
+        <p>✦ 依法通報：<strong style="color:${hasReport?'var(--green)':'var(--red)'};">${hasReport?'✓ 已完成':'✗ 未完成（選擇暫緩通報）'}</strong></p>
+        <p>✦ 最終行政和諧度：<strong style="color:var(--primary);">${S.admin}%</strong> ／ 法律防禦力：<strong style="color:var(--green);">${S.legal}%</strong></p>
+      </div>
+
+      <div class="verdict-section">
+        <h3>法院備註</h3>
+        <p>${sig}</p>
+      </div>
+
+      <div class="verdict-signature">
+        模擬法庭審判長<br>
+        中華民國 113 年 幼教法律倫理課程<br>
+        <em style="color:var(--text-d);font-size:.72rem;">本判決書為教學模擬用途，不具法律效力</em>
+      </div>
+    </div>
+
+    <div style="margin-top:18px;text-align:center;">
+      <button class="reset-btn" onclick="resetGame()" style="font-size:.88rem;padding:11px 28px;">↺ 重新模擬，嘗試不同抉擇</button>
+    </div>
+  `;
+}
+
+// ════════════════════════════
+// OVERLAY
+// ════════════════════════════
+function openOverlay(id) { document.getElementById(id).classList.add('open'); }
+function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+
+// ════════════════════════════
+// PANEL 4: MULTIPLE CHOICE Q2
+// ════════════════════════════
+const mcSelected = { a:false, b:false, c:false };
+
+function checkMC(id) {
+  mcSelected[id] = !mcSelected[id];
+  const opt = document.getElementById('mc-'+id);
+  const box = document.getElementById('mcb-'+id);
+  opt.classList.toggle('selected', mcSelected[id]);
+
+  // Check if all three selected
+  if (mcSelected.a && mcSelected.b && mcSelected.c) {
+    ['a','b','c'].forEach(k => {
+      document.getElementById('mc-'+k).classList.remove('selected');
+      document.getElementById('mc-'+k).classList.add('correct');
+    });
+    document.getElementById('mc-result').style.display = 'block';
+    document.getElementById('mc-result').innerHTML = '<div class="alert-box success"><span class="alert-icon">✓</span><div>完全正確！保證人地位的成立需要三個要件同時具備：職業照顧契約、專業觀察能力、法律明文規定。三者缺一，保證人責任即無法成立。這正是幼教老師與一般路人的根本差異。</div></div>';
+  }
+}
+
+function toggleStress(el) {
+  el.classList.toggle('selected');
+  const anyChecked = document.querySelectorAll('#stress-list .mc-option.selected').length > 0;
+  document.getElementById('stress-result').style.display = anyChecked ? 'block' : 'none';
+}
+let selectedChildId = null;
+const votes = { a:0, b:0, c:0 };
+
+function selectChild(id) {
+  ['a','b','c'].forEach(k => {
+    document.getElementById('cc-'+k).classList.toggle('selected', k===id);
+    document.getElementById('cd-'+k).style.display = k===id ? 'block' : 'none';
+  });
+  selectedChildId = id;
+}
+
+function votePriority(id) {
+  votes[id]++;
+  document.querySelectorAll('.pv-btn').forEach(b => b.classList.remove('voted'));
+  document.querySelectorAll('.pv-btn')[['a','b','c'].indexOf(id)].classList.add('voted');
+  const total = votes.a + votes.b + votes.c;
+  document.getElementById('vote-result').style.display = 'block';
+  ['a','b','c'].forEach(k => {
+    const pct = total ? Math.round(votes[k]/total*100) : 0;
+    document.getElementById('vb-'+k).style.width = pct+'%';
+    document.getElementById('vc-'+k).textContent = votes[k];
+  });
+  fbPush('p4_priority', { child: id });
+}
+
+// ════════════════════════════
+// PANEL 5: BALANCE
+// ════════════════════════════
+const duties = { observe:false, photo:false, report:false };
+
+function toggleDuty(key) {
+  duties[key] = !duties[key];
+  const chip = document.getElementById('tc-'+key);
+  chip.classList.toggle('on', duties[key]);
+  chip.classList.toggle('off', !duties[key]);
+
+  const pw = document.getElementById('pw-'+key);
+  if (duties[key]) {
+    pw.className = 'pan-weight pw-duty';
+    pw.textContent = key === 'observe' ? '✓ 觀察並記錄' : key === 'photo' ? '✓ 拍照存證' : '✓ 依法通報';
+  } else {
+    pw.className = 'pan-weight pw-empty';
+    pw.textContent = key === 'observe' ? '未執行觀察' : key === 'photo' ? '未存證' : '未通報';
+  }
+  updateBalance();
+}
+
+function updateBalance() {
+  const score = (duties.observe?1:0) + (duties.photo?1:0) + (duties.report?1:0);
+  const beam = document.getElementById('beam-group');
+  const verdict = document.getElementById('balance-verdict');
+
+  if (score === 0) {
+    beam.style.transform = 'rotate(14deg)';
+    verdict.className = 'balance-verdict guilty';
+    verdict.textContent = '⚖ 天平倒向刑事責任 ── 老師失職，與施虐者同罪';
+  } else if (score === 1) {
+    beam.style.transform = 'rotate(8deg)';
+    verdict.className = 'balance-verdict guilty';
+    verdict.textContent = '⚖ 義務未完整履行 ── 仍有法律責任風險';
+  } else if (score === 2) {
+    beam.style.transform = 'rotate(3deg)';
+    verdict.className = 'balance-verdict';
+    verdict.style.background = 'var(--gold-l)';
+    verdict.style.borderColor = 'var(--gold)';
+    verdict.style.color = 'var(--amber)';
+    verdict.textContent = '⚖ 部分履行義務 ── 法律責任減輕，但仍有漏洞';
+  } else {
+    beam.style.transform = 'rotate(-12deg)';
+    verdict.className = 'balance-verdict innocent';
+    verdict.style.background = '';
+    verdict.style.borderColor = '';
+    verdict.style.color = '';
+    verdict.textContent = '⚖ 義務完整履行 ── 天平倒向無罪，兒童最佳利益優先';
+  }
+}
+
+// ════════════════════════════
+// PANEL 6: REFLECTION
+// ════════════════════════════
+function answerQ1(choice) {
+  document.getElementById('r1-yes').classList.toggle('voted', choice==='yes');
+  document.getElementById('r1-no').classList.toggle('voted', choice==='no');
+  document.getElementById('r1-slider-area').style.display = 'block';
+  const resp = document.getElementById('r1-response');
+  resp.style.display = 'block';
+  if (choice === 'yes') {
+    resp.innerHTML = '<div class="alert-box success"><span class="alert-icon">✓</span><div>這個選擇符合保證人義務的精神。善意通報受法律保護，即使事後證明是誤會，你的法律責任已免除。</div></div>';
+  } else {
+    resp.innerHTML = '<div class="alert-box danger"><span class="alert-icon">⚠</span><div>請思考：如果下一次不是誤會呢？保證人地位要求我們即使在不確定的情況下，仍必須優先保護兒童。</div></div>';
+  }
+  fbPush('p6_q1', { choice });
+}
+
+function updateSliderLabel(sliderId, labelId) {
+  document.getElementById(labelId).textContent = document.getElementById(sliderId).value;
+}
+
+let fbDebounce = {};
+function fbDebounced(key, path, data, ms=600) {
+  clearTimeout(fbDebounce[key]);
+  fbDebounce[key] = setTimeout(() => fbPush(path, data), ms);
+}
+
+function updateR21() {
+  const v = parseInt(document.getElementById('r21-slider').value);
+  document.getElementById('r21-child-val').textContent = v + '%';
+  document.getElementById('r21-job-val').textContent = (100-v) + '%';
+  const comment = document.getElementById('r21-comment');
+  if (v >= 80) comment.textContent = '你高度重視兒童安全。法律上這是正確的選擇——善意通報者不負法律責任，你的工作也受法令保護。';
+  else if (v >= 50) comment.textContent = '你試圖在兩者間取得平衡。請記得：保證人義務是法定義務，不能以個人風險為由迴避。';
+  else comment.textContent = '工作保障的考量是可以理解的。但請思考：如果因為你的沉默，孩子受到更嚴重的傷害，你能承擔那個代價嗎？';
+  fbDebounced('r21', 'p6_r2', { childSafety: v, jobSecurity: 100-v });
+}
+
+function updateR2() {
+  const v = parseInt(document.getElementById('r2-slider').value);
+  document.getElementById('r2-val').textContent = v;
+  const comment = document.getElementById('r2-comment');
+  if (v >= 80) comment.textContent = '高度認同兒童安全的職業意義，這是幼教專業的核心價值。';
+  else if (v >= 50) comment.textContent = '有一定認同，但仍有猶豫。歡迎在課堂上分享你的顧慮。';
+  else comment.textContent = '這個分數值得我們深入討論——是什麼讓你對「兒童生存率100%」的重量感到猶豫？';
+  fbDebounced('r2', 'p6_r3', { value: v });
+}
+
+function updateR3() {
+  const child = parseInt(document.getElementById('r3-child').value);
+  const admin = parseInt(document.getElementById('r3-admin').value);
+  const parent = parseInt(document.getElementById('r3-parent').value);
+  const result = document.getElementById('r3-result');
+  let msg = '';
+  if (child >= 70) msg += '你以兒童最佳利益為優先，符合保證人義務的核心精神。';
+  else msg += '兒童最佳利益的比重偏低，請思考在法律衝突時，這個排序會帶來什麼結果。';
+  if (admin >= 60) msg += ' 你對行政和諧給予相當比重——這是現實的考量，但請記得它不能凌駕於法定義務之上。';
+  if (parent >= 60) msg += ' 你重視親師關係，這是優質幼教的要素，但當它與兒童安全衝突時，法律已明確給出答案。';
+  result.textContent = msg;
+  fbDebounced('r3', 'p6_r4', { child, admin, parent });
+}
+
+// 初始化 R21, R2, R3
+window.addEventListener('load', () => {
+  if (IS_TEACHER) { initTeacherScreen(); return; }
+  updateR21(); updateR2(); updateR3();
+});
+
+// ════════════════════════════
+// TEACHER SCREEN
+// ════════════════════════════
+function initTeacherScreen() {
+  document.getElementById('student-content').style.display = 'none';
+  document.getElementById('teacher-view').style.display = 'block';
+  buildTeacherDashboard();
+}
+
+async function buildTeacherDashboard() {
+  const [p2, p4, p6q1, p6r2, p6r3, p6r4] = await Promise.all([
+    fbGetAll('p2_decision'),
+    fbGetAll('p4_priority'),
+    fbGetAll('p6_q1'),
+    fbGetAll('p6_r2'),
+    fbGetAll('p6_r3'),
+    fbGetAll('p6_r4'),
+  ]);
+
+  const el = document.getElementById('teacher-view');
+  const n2 = p2.length, n4 = p4.length, n6 = p6q1.length;
+
+  // P2 counts
+  const p2r = p2.filter(d=>d.choice==='report').length;
+  const p2s = p2.filter(d=>d.choice==='silent').length;
+
+  // P4 counts
+  const p4a = p4.filter(d=>d.child==='a').length;
+  const p4b = p4.filter(d=>d.child==='b').length;
+  const p4c = p4.filter(d=>d.child==='c').length;
+
+  // P6 Q1
+  const q1y = p6q1.filter(d=>d.choice==='yes').length;
+  const q1n = p6q1.filter(d=>d.choice==='no').length;
+
+  // P6 averages
+  const avg = (arr, key) => arr.length ? Math.round(arr.reduce((s,d)=>s+(d[key]||0),0)/arr.length) : 0;
+  const r2cs = avg(p6r2,'childSafety');
+  const r3v  = avg(p6r3,'value');
+  const r4ch = avg(p6r4,'child');
+  const r4ad = avg(p6r4,'admin');
+  const r4pa = avg(p6r4,'parent');
+
+  el.innerHTML = `
+  <div style="max-width:900px;margin:0 auto;padding:28px 24px;font-family:'Noto Sans TC',sans-serif;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+      <div>
+        <div style="font-size:0.72rem;color:#888;letter-spacing:2px;margin-bottom:4px;">大螢幕統計面板</div>
+        <div style="font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:#2A5F8A;">幼教法律倫理沙盒｜即時作答統計</div>
+      </div>
+      <button onclick="buildTeacherDashboard()" style="padding:8px 18px;border-radius:4px;border:1px solid #C8C0B0;background:#fff;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:700;">↻ 重新整理</button>
+    </div>
+
+    <!-- P2 -->
+    <div style="background:#fff;border:1px solid #C8C0B0;border-radius:4px;padding:20px 22px;margin-bottom:16px;">
+      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">分頁二：衝突決策</div>
+      <div style="font-size:.82rem;color:#4A4A4A;margin-bottom:10px;">共 <strong>${n2}</strong> 位同學作答</div>
+      ${bar('依法通報', p2r, n2, '#2A5F8A')}
+      ${bar('暫緩通報／私下溝通', p2s, n2, '#8A2A2A')}
+    </div>
+
+    <!-- P4 -->
+    <div style="background:#fff;border:1px solid #C8C0B0;border-radius:4px;padding:20px 22px;margin-bottom:16px;">
+      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">分頁四：優先介入對象</div>
+      <div style="font-size:.82rem;color:#4A4A4A;margin-bottom:10px;">共 <strong>${n4}</strong> 位同學投票</div>
+      ${bar('孩子 A（情緒異常）', p4a, n4, '#4A7AAE')}
+      ${bar('孩子 B（手腕紅點）', p4b, n4, '#C8963A')}
+      ${bar('孩子 C（剴剴化身）', p4c, n4, '#8A2A2A')}
+    </div>
+
+    <!-- P6 -->
+    <div style="background:#fff;border:1px solid #C8C0B0;border-radius:4px;padding:20px 22px;margin-bottom:16px;">
+      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">分頁六：反思題作答</div>
+      <div style="font-size:.82rem;color:#4A4A4A;margin-bottom:14px;">共 <strong>${n6}</strong> 位同學作答</div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:6px;">反思題1：重來一次，你還會通報嗎？</div>
+        ${bar('會通報', q1y, n6, '#1A6A40')}
+        ${bar('不會通報', q1n, n6, '#8A2A2A')}
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:8px;">反思題2：保住孩子安全 vs 保住工作（全班平均）</div>
+        ${sliderAvg('保住孩子安全', r2cs, '#1A6A40')}
+        ${sliderAvg('保住自己工作', 100-r2cs, '#8A2A2A')}
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:8px;">反思題3：兒童生存率的職業意義（全班平均 ${r3v}/100）</div>
+        ${sliderAvg('職業意義重量', r3v, '#2A5F8A')}
+      </div>
+
+      <div>
+        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:8px;">反思題4：三個向度比重（全班平均）</div>
+        ${sliderAvg('兒童最佳利益', r4ch, '#2A5F8A')}
+        ${sliderAvg('行政和諧', r4ad, '#8A6A20')}
+        ${sliderAvg('親師關係', r4pa, '#5A4A20')}
+      </div>
+    </div>
+
+    <div style="text-align:center;font-size:.75rem;color:#888;margin-top:8px;">每 30 秒自動更新 ｜ 學生開啟 law-sandbox.html（不加參數）作答</div>
+  </div>`;
+
+  setTimeout(buildTeacherDashboard, 30000);
+}
+
+function bar(label, count, total, color) {
+  const pct = total ? Math.round(count/total*100) : 0;
+  return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+    <div style="width:160px;font-size:.8rem;color:#4A4A4A;flex-shrink:0;">${label}</div>
+    <div style="flex:1;background:#E5E1D8;border-radius:2px;height:14px;overflow:hidden;">
+      <div style="width:${pct}%;background:${color};height:100%;border-radius:2px;transition:width .5s;"></div>
+    </div>
+    <div style="font-size:.8rem;font-weight:700;color:${color};min-width:60px;text-align:right;">${count} 人（${pct}%）</div>
+  </div>`;
+}
+
+function sliderAvg(label, val, color) {
+  return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:7px;">
+    <div style="width:140px;font-size:.78rem;color:#4A4A4A;flex-shrink:0;">${label}</div>
+    <div style="flex:1;background:#E5E1D8;border-radius:2px;height:10px;overflow:hidden;">
+      <div style="width:${val}%;background:${color};height:100%;border-radius:2px;transition:width .5s;"></div>
+    </div>
+    <div style="font-size:.8rem;font-weight:700;color:${color};min-width:40px;text-align:right;">${val}%</div>
+  </div>`;
+}
+
+// ════════════════════════════
+// RESET (updated)
+// ════════════════════════════
+function resetGame() {
+  if (!confirm('確定要重新開始模擬？所有進度將清除。')) return;
+  S.admin=100; S.legal=0;
+  S.checked={head:false,back:false,hand:false,leg:false};
+  S.alertFound=false; S.photoTaken=false; S.noteSaved=false;
+  S.decision=null; S.currentTab=1; S.tab2Unlocked=false; S.tab3Unlocked=false;
+  updateBars();
+  // Reset zones
+  ['head','back','hand','leg'].forEach(z => {
+    document.getElementById('zone-'+z).className='body-zone';
+    document.getElementById('ci-'+z).className='check-item';
+    document.getElementById('ci-'+z).querySelector('.check-dot').style.background='';
+  });
+  document.getElementById('alert-msg').style.display='none';
+  document.getElementById('evidence-card').style.display='none';
+  document.getElementById('evidence-log').innerHTML='';
+  document.getElementById('btn-photo').className='ev-btn';
+  document.getElementById('btn-photo').textContent='📷 拍照存證';
+  document.getElementById('btn-note').className='ev-btn';
+  document.getElementById('btn-note').textContent='📝 文字紀錄';
+  document.getElementById('note-area').style.display='none';
+  document.getElementById('note-text').value='';
+  document.getElementById('proceed-btn').disabled=true;
+  document.getElementById('decision-result').style.display='none';
+  document.getElementById('proceed-verdict-btn').disabled=true;
+  document.getElementById('btn-report').disabled=false;
+  document.getElementById('btn-silent').disabled=false;
+  document.getElementById('btn-report').classList.remove('chosen');
+  document.getElementById('btn-silent').classList.remove('chosen');
+  document.getElementById('verdict-container').innerHTML='';
+  // Reset tabs
+  ['tab2','tab3'].forEach(id => {
+    const t = document.getElementById(id);
+    t.classList.add('locked');
+    if (!t.querySelector('.lock-icon')) {
+      const span = document.createElement('span');
+      span.className='lock-icon';
+      span.id=id.replace('tab','lock');
+      span.textContent='🔒';
+      t.appendChild(span);
+    }
+  });
+  goTab(1);
+}
+</script>
+</body>
+</html>
