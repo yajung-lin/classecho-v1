@@ -283,14 +283,7 @@ textarea.note-input:focus { outline:none; border-color:var(--primary); }
 .overlay-close:hover { border-color:var(--text-m); color:var(--text); }
 
 /* Responsive */
-@media(max-width:680px) {
-  .case-header { padding:20px; }
-  .content { padding:20px; }
-  .status-panel { padding:12px 20px; flex-direction:column; gap:12px; }
-  .tabs-wrap { padding:0 20px; }
-  .decision-grid { grid-template-columns:1fr; }
-  .verdict-paper { padding:22px 20px; }
-}
+/* mobile handled below */
 
 /* ── PANEL 4: ROLL CALL ── */
 .child-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:20px; }
@@ -427,11 +420,71 @@ textarea.note-input:focus { outline:none; border-color:var(--primary); }
 .north-star .ns-icon { font-size:2rem; margin-bottom:8px; }
 .north-star h3 { font-family:'Noto Serif TC',serif; font-size:1rem; margin-bottom:8px; }
 .north-star p { font-size:0.82rem; line-height:1.7; opacity:.9; }
-@media(max-width:680px){
-  .child-grid { grid-template-columns:1fr; }
-  .aftermath-meters { grid-template-columns:1fr; }
+@media(max-width:680px) {
+  /* Header */
+  .case-header { padding:16px; }
+  .case-title { font-size:1.2rem; }
+  .case-subtitle { font-size:.8rem; }
+  .case-meta { gap:12px; }
+  .case-number { font-size:.68rem; }
+
+  /* Status */
+  .status-panel { padding:10px 16px; flex-direction:column; gap:10px; }
+  .status-item { max-width:100%; }
+
+  /* Nav */
+  .top-nav { padding:10px 14px; flex-wrap:wrap; gap:8px; }
+  .nav-title { font-size:.78rem; }
+
+  /* Tabs — 橫向可捲動 */
+  .tabs-wrap { padding:0; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .tabs { display:flex; min-width:max-content; padding:0 12px; }
+  .tab { padding:11px 12px; font-size:.73rem; white-space:nowrap; }
+
+  /* Content */
+  .content { padding:14px; }
+
+  /* Cards */
+  .card { padding:14px 16px; }
+
+  /* Panel 1: 身體圖 + 清單 改為垂直排列 */
+  #panel1 > div[style*="grid"] { display:block !important; }
+  .body-wrap { width:160px; margin:0 auto; }
+
+  /* Panel 2: 決策按鈕 */
+  .decision-grid { grid-template-columns:1fr; gap:12px; }
+  .decision-btn { padding:14px 16px; }
+
+  /* Panel 3: 判決書 */
+  .verdict-paper { padding:18px 16px; }
+  .verdict-text { font-size:1.5rem; }
+
+  /* Panel 4: 孩子卡片 */
+  .child-grid { grid-template-columns:1fr; gap:10px; }
+  .child-avatar { width:44px; height:44px; font-size:1.2rem; }
+
+  /* Panel 5: 天平 */
   .balance-sides { width:100%; }
-  .balance-beam { width:200px; }
+  .balance-beam { width:180px; }
+  #balance-svg { max-width:340px; }
+
+  /* Panel 6: 反思題滑桿 */
+  .reflect-q { padding:12px 14px; }
+  .aftermath-meters { grid-template-columns:1fr; }
+
+  /* 訊息卡 */
+  .msg-card { padding:12px 14px; }
+
+  /* 按鈕 */
+  .proceed-btn { font-size:.84rem; padding:12px; }
+  .pv-btn { padding:8px 12px; font-size:.78rem; }
+  .mc-option { font-size:.82rem; padding:9px 11px; }
+
+  /* 公式 */
+  .formula { font-size:.85rem; line-height:1.8; }
+
+  /* 通報後時間軸 */
+  .scenario-timeline { padding-left:20px; }
 }
 </style>
 </head>
@@ -1597,6 +1650,7 @@ async function buildTeacherDashboard() {
       <div style="display:flex;align-items:center;gap:10px;">
         <span style="font-size:.75rem;color:#AAA;">上次更新：${new Date().toLocaleTimeString('zh-TW')}</span>
         <button onclick="buildTeacherDashboard()" style="padding:8px 18px;border-radius:4px;border:1px solid #C8C0B0;background:#fff;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:700;">↻ 重新整理</button>
+        <button onclick="clearSandboxData()" style="padding:8px 18px;border-radius:4px;border:1px solid #C8A0A0;background:#FFF0F0;color:#8A2A2A;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:700;">🗑 清除作答</button>
       </div>
     </div>
 
@@ -1649,7 +1703,18 @@ async function buildTeacherDashboard() {
   setTimeout(buildTeacherDashboard, 30000);
 }
 
-function bar(label, count, total, color) {
+async function clearSandboxData() {
+  if (!confirm('確定清除所有學生的沙盒作答資料？此動作無法復原。')) return;
+  try {
+    await fetch(`${FB}/sandbox.json`, {
+      method: 'DELETE'
+    });
+    alert('✓ 已清除所有作答資料');
+    buildTeacherDashboard();
+  } catch(e) {
+    alert('清除失敗，請檢查網路連線');
+  }
+}
   const pct = total ? Math.round(count/total*100) : 0;
   return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
     <div style="width:160px;font-size:.8rem;color:#4A4A4A;flex-shrink:0;">${label}</div>
