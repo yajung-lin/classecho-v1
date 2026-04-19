@@ -1550,6 +1550,9 @@ function initTeacherScreen() {
 }
 
 async function buildTeacherDashboard() {
+  const el = document.getElementById('teacher-view');
+  el.innerHTML = `<div style="max-width:900px;margin:0 auto;padding:40px 24px;font-family:'Noto Sans TC',sans-serif;text-align:center;color:#888;">載入資料中...</div>`;
+
   const [p2, p4, p6q1, p6r2, p6r3, p6r4] = await Promise.all([
     fbGetAll('p2_decision'),
     fbGetAll('p4_priority'),
@@ -1559,7 +1562,6 @@ async function buildTeacherDashboard() {
     fbGetAll('p6_r4'),
   ]);
 
-  const el = document.getElementById('teacher-view');
   const n2 = p2.length, n4 = p4.length, n6 = p6q1.length;
 
   // P2 counts
@@ -1583,6 +1585,8 @@ async function buildTeacherDashboard() {
   const r4ad = avg(p6r4,'admin');
   const r4pa = avg(p6r4,'parent');
 
+  const noData = (n) => n === 0 ? `<div style="font-size:.8rem;color:#AAA;padding:10px 0;font-style:italic;">尚無學生作答</div>` : '';
+
   el.innerHTML = `
   <div style="max-width:900px;margin:0 auto;padding:28px 24px;font-family:'Noto Sans TC',sans-serif;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
@@ -1590,57 +1594,56 @@ async function buildTeacherDashboard() {
         <div style="font-size:0.72rem;color:#888;letter-spacing:2px;margin-bottom:4px;">大螢幕統計面板</div>
         <div style="font-family:'Noto Serif TC',serif;font-size:1.3rem;font-weight:700;color:#2A5F8A;">幼教法律倫理沙盒｜即時作答統計</div>
       </div>
-      <button onclick="buildTeacherDashboard()" style="padding:8px 18px;border-radius:4px;border:1px solid #C8C0B0;background:#fff;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:700;">↻ 重新整理</button>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:.75rem;color:#AAA;">上次更新：${new Date().toLocaleTimeString('zh-TW')}</span>
+        <button onclick="buildTeacherDashboard()" style="padding:8px 18px;border-radius:4px;border:1px solid #C8C0B0;background:#fff;cursor:pointer;font-family:inherit;font-size:.82rem;font-weight:700;">↻ 重新整理</button>
+      </div>
     </div>
 
     <!-- P2 -->
     <div style="background:#fff;border:1px solid #C8C0B0;border-radius:4px;padding:20px 22px;margin-bottom:16px;">
-      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">分頁二：衝突決策</div>
-      <div style="font-size:.82rem;color:#4A4A4A;margin-bottom:10px;">共 <strong>${n2}</strong> 位同學作答</div>
-      ${bar('依法通報', p2r, n2, '#2A5F8A')}
-      ${bar('暫緩通報／私下溝通', p2s, n2, '#8A2A2A')}
+      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">📋 分頁二：衝突決策 <span style="font-weight:400;color:#AAA;">（${n2} 人作答）</span></div>
+      ${noData(n2)}
+      ${n2 > 0 ? bar('依法通報', p2r, n2, '#2A5F8A') + bar('暫緩通報／私下溝通', p2s, n2, '#8A2A2A') : ''}
     </div>
 
     <!-- P4 -->
     <div style="background:#fff;border:1px solid #C8C0B0;border-radius:4px;padding:20px 22px;margin-bottom:16px;">
-      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">分頁四：優先介入對象</div>
-      <div style="font-size:.82rem;color:#4A4A4A;margin-bottom:10px;">共 <strong>${n4}</strong> 位同學投票</div>
-      ${bar('孩子 A（情緒異常）', p4a, n4, '#4A7AAE')}
-      ${bar('孩子 B（手腕紅點）', p4b, n4, '#C8963A')}
-      ${bar('孩子 C（剴剴化身）', p4c, n4, '#8A2A2A')}
+      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">👁 分頁四：優先介入對象 <span style="font-weight:400;color:#AAA;">（${n4} 人投票）</span></div>
+      ${noData(n4)}
+      ${n4 > 0 ? bar('孩子 A（情緒異常）', p4a, n4, '#4A7AAE') + bar('孩子 B（手腕紅點）', p4b, n4, '#C8963A') + bar('孩子 C（剴剴化身）', p4c, n4, '#8A2A2A') : ''}
     </div>
 
     <!-- P6 -->
     <div style="background:#fff;border:1px solid #C8C0B0;border-radius:4px;padding:20px 22px;margin-bottom:16px;">
-      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">分頁六：反思題作答</div>
-      <div style="font-size:.82rem;color:#4A4A4A;margin-bottom:14px;">共 <strong>${n6}</strong> 位同學作答</div>
+      <div style="font-size:.72rem;font-weight:700;color:#8A6A20;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid #E5E1D8;">💬 分頁六：反思作答 <span style="font-weight:400;color:#AAA;">（${n6} 人作答）</span></div>
 
-      <div style="margin-bottom:14px;">
-        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:6px;">反思題1：重來一次，你還會通報嗎？</div>
-        ${bar('會通報', q1y, n6, '#1A6A40')}
-        ${bar('不會通報', q1n, n6, '#8A2A2A')}
+      <div style="margin-bottom:18px;">
+        <div style="font-size:.82rem;font-weight:700;color:#2A5F8A;margin-bottom:8px;padding-left:8px;border-left:3px solid #2A5F8A;">反思題 1：重來一次，你還會通報嗎？</div>
+        ${noData(n6)}
+        ${n6 > 0 ? bar('會通報', q1y, n6, '#1A6A40') + bar('不會通報', q1n, n6, '#8A2A2A') : ''}
       </div>
 
-      <div style="margin-bottom:14px;">
-        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:8px;">反思題2：保住孩子安全 vs 保住工作（全班平均）</div>
-        ${sliderAvg('保住孩子安全', r2cs, '#1A6A40')}
-        ${sliderAvg('保住自己工作', 100-r2cs, '#8A2A2A')}
+      <div style="margin-bottom:18px;">
+        <div style="font-size:.82rem;font-weight:700;color:#2A5F8A;margin-bottom:8px;padding-left:8px;border-left:3px solid #2A5F8A;">反思題 2：保住孩子安全 vs 保住工作（全班平均）</div>
+        ${noData(p6r2.length)}
+        ${p6r2.length > 0 ? sliderAvg('保住孩子安全', r2cs, '#1A6A40') + sliderAvg('保住自己工作', 100-r2cs, '#8A2A2A') : ''}
       </div>
 
-      <div style="margin-bottom:14px;">
-        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:8px;">反思題3：兒童生存率的職業意義（全班平均 ${r3v}/100）</div>
-        ${sliderAvg('職業意義重量', r3v, '#2A5F8A')}
+      <div style="margin-bottom:18px;">
+        <div style="font-size:.82rem;font-weight:700;color:#2A5F8A;margin-bottom:8px;padding-left:8px;border-left:3px solid #2A5F8A;">反思題 3：職業意義重量（全班平均 ${r3v}/100）</div>
+        ${noData(p6r3.length)}
+        ${p6r3.length > 0 ? sliderAvg('職業意義', r3v, '#2A5F8A') : ''}
       </div>
 
       <div>
-        <div style="font-size:.8rem;font-weight:700;color:#4A4A4A;margin-bottom:8px;">反思題4：三個向度比重（全班平均）</div>
-        ${sliderAvg('兒童最佳利益', r4ch, '#2A5F8A')}
-        ${sliderAvg('行政和諧', r4ad, '#8A6A20')}
-        ${sliderAvg('親師關係', r4pa, '#5A4A20')}
+        <div style="font-size:.82rem;font-weight:700;color:#2A5F8A;margin-bottom:8px;padding-left:8px;border-left:3px solid #2A5F8A;">反思題 4：三個向度比重（全班平均）</div>
+        ${noData(p6r4.length)}
+        ${p6r4.length > 0 ? sliderAvg('兒童最佳利益', r4ch, '#2A5F8A') + sliderAvg('行政和諧', r4ad, '#8A6A20') + sliderAvg('親師關係', r4pa, '#5A8A60') : ''}
       </div>
     </div>
 
-    <div style="text-align:center;font-size:.75rem;color:#888;margin-top:8px;">每 30 秒自動更新 ｜ 學生開啟 law-sandbox.html（不加參數）作答</div>
+    <div style="text-align:center;font-size:.75rem;color:#AAA;margin-top:8px;">每 30 秒自動更新 ｜ 學生需進入第二、四、六頁才會有資料</div>
   </div>`;
 
   setTimeout(buildTeacherDashboard, 30000);
