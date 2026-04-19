@@ -594,6 +594,10 @@ textarea.note-input:focus { outline:none; border-color:var(--primary); }
         </button>
       </div>
       <div style="font-size:0.72rem;color:var(--text-d);text-align:center;">點擊各部位進行晨間檢查</div>
+      <div id="leg-hint" style="display:none;margin-top:10px;" class="alert-box warn">
+        <span class="alert-icon">👇</span>
+        <div>請繼續點擊<strong>腿部</strong>完成檢查</div>
+      </div>
     </div>
 
     <!-- Checklist & Evidence -->
@@ -1180,15 +1184,24 @@ function checkZone(zone) {
     openOverlay('overlay-alert');
     S.legal += 10;
     updateBars();
+    // 隱藏提示文字
+    const hint = document.getElementById('leg-hint');
+    if (hint) hint.style.display = 'none';
   } else {
     if (btn) btn.className = 'body-btn checked';
     if (ci) ci.classList.add('done');
+    // 若三個都點完還沒點腿，顯示提示
+    const threeChecked = S.checked.head && S.checked.back && S.checked.hand;
+    if (threeChecked && !S.checked.leg) {
+      const hint = document.getElementById('leg-hint');
+      if (hint) hint.style.display = 'block';
+    }
   }
   checkAllDone();
 }
 
 function checkAllDone() {
-  const allChecked = Object.values(S.checked).every(v => v);
+  const allChecked = S.checked.head && S.checked.back && S.checked.hand && S.checked.leg;
   if (allChecked && !S.alertFound) {
     setTimeout(() => alert('所有部位檢查完畢，未發現異常。'), 300);
   }
@@ -1708,6 +1721,8 @@ async function clearSandboxData() {
     alert('清除失敗，請檢查網路連線');
   }
 }
+
+function bar(label, count, total, color) {
   const pct = total ? Math.round(count/total*100) : 0;
   return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
     <div style="width:160px;font-size:.8rem;color:#4A4A4A;flex-shrink:0;">${label}</div>
