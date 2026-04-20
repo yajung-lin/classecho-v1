@@ -805,26 +805,28 @@ async function doLogin() {
   G.name = name; G.studentId = sid;
   STUDENT_ID = sid;
 
-  // Check existing progress
-  const existing = await fbGet(`students/${sid}`);
-  if (existing && existing.stage) {
-    G.stage = existing.stage;
-    if (existing.admin !== undefined) G.admin = existing.admin;
-    if (existing.legal !== undefined) G.legal = existing.legal;
-    if (existing.decision) G.decision = existing.decision;
-    if (existing.photoTaken) G.photoTaken = existing.photoTaken;
-    if (existing.noteSaved)  G.noteSaved  = existing.noteSaved;
-  } else {
-    // New student
-    await fbSet(`students/${sid}`, {
-      name, studentId: sid, loginTime: new Date().toISOString(), stage: 1
-    });
-  }
+  // Try to load existing progress (non-blocking)
+  try {
+    const existing = await fbGet(`students/${sid}`);
+    if (existing && existing.stage) {
+      G.stage = existing.stage;
+      if (existing.admin !== undefined) G.admin = existing.admin;
+      if (existing.legal !== undefined) G.legal = existing.legal;
+      if (existing.decision) G.decision = existing.decision;
+      if (existing.photoTaken) G.photoTaken = existing.photoTaken;
+      if (existing.noteSaved)  G.noteSaved  = existing.noteSaved;
+    }
+  } catch(e) {}
+
+  // Save login (non-blocking)
+  fbSet(`students/${sid}`, {
+    name, studentId: sid, loginTime: new Date().toISOString(), stage: G.stage || 1
+  }).catch(()=>{});
 
   document.getElementById('login-view').style.display = 'none';
   document.getElementById('game-view').style.display = 'block';
   initGame();
-  goStage(G.stage);
+  goStage(G.stage || 1);
 }
 
 // ════════════════════════════════════════
@@ -868,6 +870,7 @@ function goStage(n) {
   if (panel) panel.classList.add('active');
   updateProgress(n);
   window.scrollTo({top:0, behavior:'smooth'});
+  if (n === 3) setTimeout(renderVerdict, 50);
   fbSet(`students/${STUDENT_ID}`, {
     name: G.name, studentId: G.studentId,
     stage: n, admin: G.admin, legal: G.legal,
@@ -1412,15 +1415,9 @@ function updateSlider3(qid, slid) {
 }
 
 // ════════════════════════════════════════
+// ════════════════════════════════════════
 // STAGE TRANSITIONS
 // ════════════════════════════════════════
-const originalGoStage = goStage;
-// Override to render stage 3 on arrival
-const _goStage = goStage;
-function goStage(n) {
-  _goStage(n);
-  if (n === 3) setTimeout(renderVerdict, 50);
-}
 
 function completeGame() {
   fbSet(`students/${STUDENT_ID}`, {
