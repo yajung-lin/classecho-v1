@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>行動研究工作坊</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1c1917;--paper:#faf9f7;--warm:#f5f0ea;--accent:#9a5b2f;--accent-lt:#c8945f;
+  --muted:#a09585;--border:#e6dfd6;--card:#fff;--green:#5a8a6a;--blue:#5a7a9a;
+  --rose:#9a6a7a;--amber:#9a8a4a;--purple:#7a6a9a;--teal:#5a8a8a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);font-family:'Noto Sans TC',sans-serif;color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased}
+.landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center;background:linear-gradient(160deg,#2a1f17,#3b2a1e 50%,#1a1512);color:#ede6dd}
+.landing-icon{width:64px;height:64px;border:2px solid rgba(255,255,255,.15);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:30px;margin-bottom:24px;background:rgba(255,255,255,.05)}
+.landing h1{font-family:'Noto Serif TC',serif;font-size:28px;font-weight:900;line-height:1.35;margin-bottom:12px}
+.landing .sub{font-size:14px;color:#b0a595;max-width:380px;margin:0 auto 36px;line-height:1.7}
+.landing label{display:block;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--accent-lt);margin-bottom:10px}
+.group-input{width:260px;padding:14px 18px;border:2px solid rgba(255,255,255,.12);border-radius:12px;background:rgba(255,255,255,.06);color:#fff;font-size:18px;font-family:'Noto Sans TC',sans-serif;font-weight:700;text-align:center;outline:none;transition:border-color .25s}
+.group-input::placeholder{color:rgba(255,255,255,.25);font-weight:400}
+.group-input:focus{border-color:var(--accent-lt)}
+.start-btn{display:inline-block;margin-top:24px;padding:14px 48px;border:none;border-radius:12px;background:var(--accent);color:#fff;font-size:16px;font-weight:700;font-family:'Noto Sans TC',sans-serif;cursor:pointer;transition:all .25s;opacity:.4;pointer-events:none}
+.start-btn.ready{opacity:1;pointer-events:auto}
+.start-btn.ready:hover{background:#7a4520;transform:translateY(-1px)}
+.app{display:none}.app.visible{display:block}
+.topbar{position:sticky;top:0;z-index:100;background:rgba(250,249,247,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between}
+.topbar-group{font-size:13px;font-weight:700;color:var(--accent);background:rgba(154,91,47,.08);padding:4px 12px;border-radius:6px}
+.topbar-phase{font-size:12px;color:var(--muted);font-weight:500}
+.steps-bar{display:flex;padding:14px 16px;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;background:var(--warm)}
+.steps-bar::-webkit-scrollbar{display:none}
+.step-pill{flex:0 0 auto;display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid transparent;background:0 0;font-family:'Noto Sans TC',sans-serif;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .25s;white-space:nowrap}
+.step-pill .dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:all .25s;flex-shrink:0}
+.step-pill.active{background:var(--card);border-color:var(--border);color:var(--ink);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.step-pill.done .dot{background:var(--green)}
+.step-pill.active .dot{background:var(--accent);width:10px;height:10px}
+.content-area{max-width:680px;margin:0 auto;padding:24px 20px 120px}
+.phase{display:none;animation:fadeIn .3s ease}.phase.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ph-header{margin-bottom:24px}
+.ph-num{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.ph-title{font-family:'Noto Serif TC',serif;font-size:22px;font-weight:900;line-height:1.35;margin-bottom:8px}
+.ph-lead{font-size:14px;color:var(--muted);line-height:1.7}
+.info-block{background:var(--warm);border-radius:12px;padding:18px;margin-bottom:20px;font-size:14px;line-height:1.85;color:#4a4540}
+.info-block h4{font-family:'Noto Serif TC',serif;font-size:15px;font-weight:700;margin-bottom:8px;color:var(--ink)}
+.info-block ul{list-style:none;padding:0}
+.info-block li{padding:4px 0 4px 20px;position:relative}
+.info-block li::before{content:'';position:absolute;left:6px;top:13px;width:5px;height:5px;border-radius:50%;background:var(--accent-lt)}
+.note{border-left:3px solid;border-radius:0 10px 10px 0;padding:14px 16px;margin-bottom:20px;font-size:13px;line-height:1.8;color:#555}
+.note.theory{background:#f3ede5;border-color:var(--accent)}
+.note.warn{background:#fdf6ec;border-color:#c9952e}
+.note.tip{background:#eef4f0;border-color:var(--green)}
+.note-label{font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.write-card{background:var(--card);border:1.5px solid var(--border);border-radius:14px;padding:20px 18px;margin-bottom:20px;box-shadow:0 2px 12px rgba(0,0,0,.03)}
+.write-card .task-label{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;margin-bottom:4px;color:var(--ink)}
+.write-card .task-hint{font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.7}
+.field-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;margin-top:14px;letter-spacing:.5px}
+.field-label:first-of-type{margin-top:0}
+.write-area{width:100%;min-height:72px;border:1.5px solid #e8e2da;border-radius:10px;padding:12px 14px;font-family:'Noto Sans TC',sans-serif;font-size:14px;line-height:1.75;color:var(--ink);background:#fdfcfa;resize:vertical;transition:all .2s}
+.write-area:focus{outline:none;border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(154,91,47,.08)}
+.write-area::placeholder{color:#c5bbae}
+.v-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.v-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px}
+.v-card .v-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.v-card .v-sub{font-size:12px;color:#888;line-height:1.6}
+.spiral-wrap{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.spiral-card{flex:1 1 calc(50% - 5px);min-width:140px;background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.spiral-card .s-icon{font-size:24px;margin-bottom:6px}
+.spiral-card .s-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px}
+.spiral-card .s-desc{font-size:12px;color:#777;line-height:1.6}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(250,249,247,.95);backdrop-filter:blur(10px);border-top:1px solid var(--border);padding:12px 20px;display:flex;gap:10px;z-index:200}
+.bn-btn{flex:1;padding:13px 0;border-radius:12px;font-family:'Noto Sans TC',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
+.bn-prev{background:0 0;border:1.5px solid var(--border);color:var(--muted)}
+.bn-prev:disabled{opacity:.3;cursor:default}
+.bn-next{background:var(--accent);border:none;color:#fff;box-shadow:0 3px 10px rgba(154,91,47,.25)}
+.bn-next:disabled{background:var(--border);box-shadow:none;cursor:default;color:#bbb}
+.bn-next:not(:disabled):hover{background:#7a4520}
+.ck-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;font-size:14px;line-height:1.7;border-bottom:1px solid #f0ebe3}
+.ck-item:last-child{border-bottom:none}
+.ck-box{width:22px;height:22px;border:2px solid var(--border);border-radius:6px;flex-shrink:0;margin-top:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;background:#fff}
+.ck-box.checked{background:var(--green);border-color:var(--green)}
+.ck-box.checked::after{content:'✓';color:#fff;font-size:13px;font-weight:700}
+.ref-card{background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px}
+.ref-card .ref-q{font-size:14px;font-weight:600;margin-bottom:10px;color:var(--ink);line-height:1.6}
+@media(max-width:480px){.v-grid{grid-template-columns:1fr}.spiral-card{flex:1 1 100%}.content-area{padding:20px 16px 120px}}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div class="landing" id="landing">
+  <div class="landing-icon">🔬</div>
+  <h1>行動研究<br>專題設計工作坊</h1>
+  <p class="sub">從生活場域出發，用研究者的眼光重新審視問題。<br>請輸入你的組別名稱，開始 90 分鐘的探究之旅。</p>
+  <label>組別名稱</label>
+  <input class="group-input" id="groupInput" type="text" placeholder="例：第三組" maxlength="20">
+  <br>
+  <button class="start-btn" id="startBtn" onclick="startApp()">開始工作坊 →</button>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-group" id="topbarGroup"></div>
+    <div class="topbar-phase" id="topbarPhase"></div>
+  </div>
+  <div class="steps-bar" id="stepsBar"></div>
+  <div class="content-area">
+
+    <!-- Phase 0: 背景與動機 -->
+    <div class="phase active" id="p0">
+      <div class="ph-header">
+        <div class="ph-num" style="color:var(--green)">Phase 1 ／ 約 20 分鐘</div>
+        <div class="ph-title">研究背景與動機</div>
+        <div class="ph-lead">好的研究從「有感覺的問題」開始，但研究生需要把感覺轉譯為有脈絡的論述。</div>
+      </div>
+      <div class="info-block">
+        <h4>📌 這一步要做什麼？</h4>
+        <ul>
+          <li>每人花 3 分鐘，想一個你在學業、工作或生活中<strong>一直想解決但還沒解決</strong>的問題</li>
+          <li>輪流分享（每人 1 分鐘），然後小組票選最有研究潛力的題目</li>
+          <li>選定後，一起討論並填寫下方的背景與動機</li>
+        </ul>
+      </div>
+      <div class="note theory">
+        <div class="note-label">📖 背景 vs. 動機</div>
+        <strong>背景</strong>回答「這個問題存在於什麼脈絡」——現況、文獻、數據。<br>
+        <strong>動機</strong>回答「我為什麼要做這個研究」——實務困境、個人關切、改善意願。
+      </div>
+      <div class="write-card">
+        <div class="task-label">✏️ 小組討論紀錄</div>
+        <div class="task-hint">選定題目後，試著把背景和動機分開寫清楚。</div>
+        <div class="field-label">研究背景（現況脈絡、相關文獻方向）</div>
+        <textarea class="write-area" placeholder="這個問題的現況是什麼？已有哪些相關研究或實踐？還有什麼不足？" data-key="bg"></textarea>
+        <div class="field-label">研究動機（為什麼要研究？困境是什麼？）</div>
+        <textarea class="write-area" placeholder="你們在實務現場遇到了什麼困境？為什麼非解決不可？" data-key="motive"></textarea>
+      </div>
+      <div class="note tip">
+        <div class="note-label">💡 提示</div>
+        試著回答：「如果這個問題不被處理，會怎樣？」——幫助釐清研究的急迫性與重要性。
+      </div>
+    </div>
+
+    <!-- Phase 1: 目的與問題 -->
+    <div class="phase" id="p1">
+      <div class="ph-header">
+        <div class="ph-num" style="color:var(--blue)">Phase 2 ／ 約 15 分鐘</div>
+        <div class="ph-title">研究目的與問題</div>
+        <div class="ph-lead">從模糊的關切聚焦為可操作的研究問題，是研究設計最關鍵的一步。</div>
+      </div>
+      <div class="info-block">
+        <h4>📌 目的 vs. 問題，差在哪？</h4>
+        <ul>
+          <li><strong>研究目的</strong>＝你希望這個研究達成什麼（宏觀方向）</li>
+          <li><strong>研究問題</strong>＝你具體要回答什麼（可操作的提問）</li>
+        </ul>
+      </div>
+      <div class="note theory">
+        <div class="note-label">📖 行動研究的問題寫法</div>
+        通常以「如何⋯⋯」開頭，強調改善與行動。例如：<br>
+        ✅「如何透過同儕回饋機制提升研究生論文寫作品質？」<br>
+        ❌「同儕回饋對論文寫作有沒有影響？」（偏向實驗研究問法）
+      </div>
+      <div class="write-card">
+        <div class="task-label">✏️ 小組討論紀錄</div>
+        <div class="task-hint">把你們的研究聚焦為一句目的和 1～2 個具體問題。</div>
+        <div class="field-label">研究目的</div>
+        <textarea class="write-area" placeholder="本研究旨在⋯⋯" data-key="purpose"></textarea>
+        <div class="field-label">研究問題（以「如何」開頭）</div>
+        <textarea class="write-area" placeholder="1. 如何⋯⋯？&#10;2. 如何⋯⋯？" data-key="rq"></textarea>
+        <div class="field-label">研究場域與對象</div>
+        <textarea class="write-area" placeholder="在哪裡做？針對誰？範圍多大？" data-key="field" style="min-height:56px"></textarea>
+      </div>
+      <div class="note warn">
+        <div class="note-label">⚠️ 常見陷阱</div>
+        問題太大（如「如何改善台灣教育品質」）無法操作。行動研究強調<strong>小範圍、可介入、可觀察</strong>。
+      </div>
+    </div>
+
+    <!-- Phase 2: 信效度 -->
+    <div class="phase" id="p2">
+      <div class="ph-header">
+        <div class="ph-num" style="color:var(--rose)">Phase 3 ／ 約 20 分鐘</div>
+        <div class="ph-title">信度與效度設計</div>
+        <div class="ph-lead">行動研究常被質疑「不夠嚴謹」——信效度設計是回應質疑的關鍵。</div>
+      </div>
+      <div class="info-block">
+        <h4>📌 行動研究的「可信賴性」四面向</h4>
+        行動研究不追求量化的「可推論性」，而是強調 <strong>trustworthiness</strong>。
+      </div>
+      <div class="v-grid">
+        <div class="v-card"><div class="v-title" style="color:var(--green)">🔹 可信性 Credibility</div><div class="v-sub">發現是否真實反映現場？<br>→ 三角驗證、長期投入、成員檢核</div></div>
+        <div class="v-card"><div class="v-title" style="color:var(--blue)">🔹 可轉移性 Transferability</div><div class="v-sub">經驗能否供他人參考？<br>→ 厚實描述（thick description）</div></div>
+        <div class="v-card"><div class="v-title" style="color:var(--rose)">🔹 可靠性 Dependability</div><div class="v-sub">過程是否有跡可循？<br>→ 研究日誌、決策軌跡、同儕審查</div></div>
+        <div class="v-card"><div class="v-title" style="color:var(--purple)">🔹 可確認性 Confirmability</div><div class="v-sub">結論是否基於資料？<br>→ 反思札記、原始資料、外部稽核</div></div>
+      </div>
+      <div class="info-block">
+        <h4>📌 三角驗證策略</h4>
+        <ul>
+          <li><strong>資料三角驗證</strong>：同一現象用多種蒐集方式（觀察＋訪談＋文件）</li>
+          <li><strong>研究者三角驗證</strong>：多人共同分析同一份資料</li>
+          <li><strong>理論三角驗證</strong>：不同理論視角詮釋同一組資料</li>
+          <li><strong>時間三角驗證</strong>：不同時間點蒐集，比較一致性</li>
+        </ul>
+      </div>
+      <div class="write-card">
+        <div class="task-label">✏️ 小組討論紀錄</div>
+        <div class="task-hint">規劃你們研究的信效度策略。</div>
+        <div class="field-label">資料蒐集規劃（至少三種來源）</div>
+        <textarea class="write-area" placeholder="例如：課堂觀察紀錄、訪談逐字稿、學習成果、研究日誌⋯⋯" data-key="data"></textarea>
+        <div class="field-label">三角驗證策略</div>
+        <textarea class="write-area" placeholder="你們打算如何交叉比對不同資料來源？" data-key="triangulation"></textarea>
+        <div class="field-label">研究者反身性（如何處理主觀偏見？）</div>
+        <textarea class="write-area" placeholder="如何覺察自己的預設立場？用什麼方式自我檢核？" data-key="reflexivity" style="min-height:56px"></textarea>
+      </div>
+      <div class="note warn">
+        <div class="note-label">⚠️ 倫理提醒</div>
+        行動研究涉及真實場域與參與者。請思考：知情同意？資料匿名化？參與者能退出嗎？
+      </div>
+    </div>
+
+    <!-- Phase 3: 施行流程 -->
+    <div class="phase" id="p3">
+      <div class="ph-header">
+        <div class="ph-num" style="color:var(--amber)">Phase 4 ／ 約 20 分鐘</div>
+        <div class="ph-title">施行流程設計</div>
+        <div class="ph-lead">行動研究的核心是螺旋循環：不斷在實踐中深化理解。</div>
+      </div>
+      <div class="note theory">
+        <div class="note-label">📖 Kemmis & McTaggart（1988）螺旋模式</div>
+        研究不是線性的，而是透過反覆的「計畫→行動→觀察→反思」循環不斷修正。
+      </div>
+      <div class="spiral-wrap">
+        <div class="spiral-card"><div class="s-icon">📝</div><div class="s-label" style="color:var(--amber)">Plan 計畫</div><div class="s-desc">設計介入策略<br>做什麼？怎麼做？做多久？</div></div>
+        <div class="spiral-card"><div class="s-icon">🚀</div><div class="s-label" style="color:var(--green)">Act 行動</div><div class="s-desc">在場域中實施<br>允許彈性調整，但記錄變動</div></div>
+        <div class="spiral-card"><div class="s-icon">👁️</div><div class="s-label" style="color:var(--blue)">Observe 觀察</div><div class="s-desc">系統性蒐集資料<br>不只看成效，也看過程</div></div>
+        <div class="spiral-card"><div class="s-icon">🔄</div><div class="s-label" style="color:var(--rose)">Reflect 反思</div><div class="s-desc">分析與詮釋<br>為下一輪循環奠定基礎</div></div>
+      </div>
+      <div class="write-card">
+        <div class="task-label">✏️ 設計你們的第一輪循環</div>
+        <div class="task-hint">具體規劃每個階段要做的事。</div>
+        <div class="field-label">📝 計畫：什麼行動策略？具體步驟？</div>
+        <textarea class="write-area" placeholder="我們打算⋯⋯" data-key="plan"></textarea>
+        <div class="field-label">🚀 行動：在哪實施？時程多長？分工？</div>
+        <textarea class="write-area" placeholder="預計在⋯⋯進行，為期⋯⋯" data-key="act"></textarea>
+        <div class="field-label">👁️ 觀察：用什麼方法蒐集資料？</div>
+        <textarea class="write-area" placeholder="我們會透過⋯⋯來蒐集資料" data-key="observe"></textarea>
+        <div class="field-label">🔄 反思：預期困難？無效時如何調整？</div>
+        <textarea class="write-area" placeholder="如果成效不如預期，我們打算⋯⋯" data-key="reflectplan"></textarea>
+      </div>
+    </div>
+
+    <!-- Phase 4: 反思 -->
+    <div class="phase" id="p4">
+      <div class="ph-header">
+        <div class="ph-num" style="color:var(--purple)">Phase 5 ／ 約 10 分鐘</div>
+        <div class="ph-title">反思與展望</div>
+        <div class="ph-lead">行動研究最核心的精神不是「做了什麼」，而是「從中學到了什麼」。</div>
+      </div>
+      <div class="info-block">
+        <h4>📌 反思的三個層次</h4>
+        <ul>
+          <li><strong>技術性反思</strong>：行動策略本身是否有效？方法是否恰當？</li>
+          <li><strong>實踐性反思</strong>：我對問題的理解是否改變了？假設是否被挑戰？</li>
+          <li><strong>批判性反思</strong>：問題背後有什麼結構性因素？權力關係？制度限制？</li>
+        </ul>
+      </div>
+      <div class="note theory">
+        <div class="note-label">📖 Schön（1983）</div>
+        「行動中反思（reflection-in-action）」是當下即時調整；「對行動的反思（reflection-on-action）」是事後系統回顧。行動研究兩者都需要。
+      </div>
+      <div style="margin-bottom:12px;font-size:14px;font-weight:600;color:var(--muted)">🧑‍💻 請每位成員獨立書寫（可輪流打字）：</div>
+      <div class="ref-card">
+        <div class="ref-q">① 在今天的討論中，我對行動研究的理解有什麼改變？</div>
+        <textarea class="write-area" placeholder="寫下你的想法⋯⋯" data-key="ref1"></textarea>
+      </div>
+      <div class="ref-card">
+        <div class="ref-q">② 如果真的要執行這個研究，我最擔心的是什麼？</div>
+        <textarea class="write-area" placeholder="寫下你的想法⋯⋯" data-key="ref2"></textarea>
+      </div>
+      <div class="ref-card">
+        <div class="ref-q">③ 這個研究主題讓我重新思考了什麼？</div>
+        <textarea class="write-area" placeholder="關於自己的實踐、信念、或專業角色⋯⋯" data-key="ref3"></textarea>
+      </div>
+    </div>
+
+    <!-- Phase 5: 發表 -->
+    <div class="phase" id="p5">
+      <div class="ph-header">
+        <div class="ph-num" style="color:var(--teal)">Phase 6 ／ 彈性時間</div>
+        <div class="ph-title">彙整與發表</div>
+        <div class="ph-lead">每組 3 分鐘，向全班呈現你們的行動研究提案。</div>
+      </div>
+      <div class="info-block">
+        <h4>📌 發表前 Checklist</h4>
+        <p style="font-size:13px;color:#888;margin-bottom:12px">報告前逐項確認，點擊打勾：</p>
+        <div class="ck-item"><div class="ck-box" onclick="this.classList.toggle('checked')"></div><div><strong>研究題目</strong> — 一句話讓聽眾知道你們在研究什麼</div></div>
+        <div class="ck-item"><div class="ck-box" onclick="this.classList.toggle('checked')"></div><div><strong>背景與動機</strong> — 為什麼重要？（30 秒）</div></div>
+        <div class="ck-item"><div class="ck-box" onclick="this.classList.toggle('checked')"></div><div><strong>研究目的與問題</strong> — 具體要回答什麼？（30 秒）</div></div>
+        <div class="ck-item"><div class="ck-box" onclick="this.classList.toggle('checked')"></div><div><strong>信效度策略</strong> — 如何確保嚴謹性？（30 秒）</div></div>
+        <div class="ck-item"><div class="ck-box" onclick="this.classList.toggle('checked')"></div><div><strong>行動方案</strong> — 怎麼做？循環怎麼跑？（60 秒）</div></div>
+        <div class="ck-item"><div class="ck-box" onclick="this.classList.toggle('checked')"></div><div><strong>預期挑戰</strong> — 最擔心什麼？需要什麼建議？（30 秒）</div></div>
+      </div>
+      <div class="note tip">
+        <div class="note-label">💡 回饋指引（給聽眾）</div>
+        ・研究問題是否夠聚焦、可操作？<br>
+        ・信效度策略有沒有遺漏？<br>
+        ・行動方案是否可行？有沒有替代策略？<br>
+        ・倫理面向是否被考慮到？
+      </div>
+      <div class="write-card">
+        <div class="task-label">📋 研究提案摘要（最終版）</div>
+        <div class="task-hint">把你們的完整提案濃縮在這裡，作為今天的成果紀錄。</div>
+        <div class="field-label">研究題目</div>
+        <textarea class="write-area" placeholder="一句話的研究題目" data-key="final-title" style="min-height:44px"></textarea>
+        <div class="field-label">研究摘要</div>
+        <textarea class="write-area" placeholder="涵蓋背景、動機、目的、方法、預期貢獻⋯⋯" data-key="final-abstract" style="min-height:120px"></textarea>
+      </div>
+    </div>
+
+  </div>
+  <div class="bottom-nav">
+    <button class="bn-btn bn-prev" id="bnPrev" onclick="navPhase(-1)">← 上一步</button>
+    <button class="bn-btn bn-next" id="bnNext" onclick="navPhase(1)">下一步 →</button>
+  </div>
+</div>
+
+<script>
+const phases=[{name:'背景與動機',short:'背景動機'},{name:'目的與問題',short:'目的問題'},{name:'信效度設計',short:'信效度'},{name:'施行流程',short:'施行流程'},{name:'反思與展望',short:'反思'},{name:'彙整發表',short:'發表'}];
+let cur=0,groupName='';
+const gi=document.getElementById('groupInput'),sb=document.getElementById('startBtn');
+gi.addEventListener('input',()=>{sb.classList.toggle('ready',gi.value.trim().length>0)});
+gi.addEventListener('keydown',e=>{if(e.key==='Enter'&&gi.value.trim())startApp()});
+
+function startApp(){
+  groupName=gi.value.trim();if(!groupName)return;
+  document.getElementById('landing').style.display='none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('topbarGroup').textContent=groupName;
+  buildSteps();showPhase(0);
+}
+function buildSteps(){
+  document.getElementById('stepsBar').innerHTML=phases.map((p,i)=>`<button class="step-pill" id="sp${i}" onclick="showPhase(${i})"><span class="dot"></span>${p.short}</button>`).join('');
+}
+function showPhase(idx){
+  cur=idx;
+  document.querySelectorAll('.phase').forEach((el,i)=>el.classList.toggle('active',i===idx));
+  document.querySelectorAll('.step-pill').forEach((el,i)=>{el.classList.toggle('active',i===idx);if(i<idx)el.classList.add('done')});
+  const pill=document.getElementById('sp'+idx);if(pill)pill.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+  document.getElementById('topbarPhase').textContent=`Phase ${idx+1} / ${phases.length}`;
+  document.getElementById('bnPrev').disabled=idx===0;
+  const nb=document.getElementById('bnNext');
+  if(idx===phases.length-1){nb.textContent='✅ 完成';nb.disabled=false;nb.onclick=()=>{alert('太棒了！你們的研究提案已完成。\n可以截圖或複製文字保存成果。')}}
+  else{nb.textContent='下一步 →';nb.disabled=false;nb.onclick=()=>navPhase(1)}
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function navPhase(d){const n=cur+d;if(n>=0&&n<phases.length)showPhase(n)}
+
+// Persist per group
+document.querySelectorAll('.write-area').forEach(ta=>{
+  const k='ar_'+ta.dataset.key;
+  const s=sessionStorage.getItem(k);if(s)ta.value=s;
+  ta.addEventListener('input',()=>sessionStorage.setItem(k,ta.value));
+});
+</script>
+</body>
+</html>
