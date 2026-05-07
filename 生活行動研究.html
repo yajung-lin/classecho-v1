@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生活行動研究：從吐槽到探究</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    min-height: 100vh;
+    background: #FFFBF5;
+    font-family: 'Noto Sans TC', sans-serif;
+    color: #2d2d2d;
+    padding: 20px 16px 40px;
+  }
+  .header { text-align: center; margin-bottom: 24px; }
+  .header .icon { font-size: 40px; margin-bottom: 4px; }
+  .header h1 { font-size: 24px; font-weight: 900; margin: 0 0 6px; line-height: 1.4; }
+  .header p { font-size: 15px; color: #888; font-weight: 500; }
+
+  .tab-bar {
+    display: flex; background: #f0ebe3; border-radius: 12px;
+    padding: 4px; margin-bottom: 20px; gap: 4px;
+  }
+  .tab-btn {
+    flex: 1; padding: 10px 0; border-radius: 10px; border: none;
+    background: transparent; color: #999; font-weight: 500;
+    font-size: 13px; cursor: pointer; font-family: inherit;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: #fff; color: #2d2d2d; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+
+  .dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+  .dot {
+    height: 12px; border-radius: 6px; border: none; cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .dot.inactive { width: 12px; background: #e0d8cc; }
+  .dot.active { width: 40px; }
+
+  .card {
+    background: #fff; border-radius: 20px; padding: 28px 22px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+    animation: slideIn 0.3s ease;
+  }
+  .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .card-icon {
+    width: 52px; height: 52px; border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; flex-shrink: 0;
+  }
+  .card-step { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+  .card-title { font-size: 20px; font-weight: 900; color: #2d2d2d; }
+  .card-desc { font-size: 15px; line-height: 1.8; color: #444; margin: 0 0 14px; }
+  .card-bullets { border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+  .card-bullets div { font-size: 14px; line-height: 1.7; color: #333; padding: 4px 0; }
+  .card-special {
+    border-radius: 14px; padding: 20px 18px; text-align: center;
+    font-size: 18px; font-weight: 700; color: #555; line-height: 1.6; margin-bottom: 14px;
+  }
+  .card-tip {
+    background: #FFF9E6; border-radius: 12px; padding: 12px 14px;
+    font-size: 13px; color: #8B7355; line-height: 1.7; margin-bottom: 14px;
+  }
+  .card-examples { border-top: 1px dashed #e0d8cc; padding-top: 14px; }
+  .card-examples .label { font-size: 12px; color: #aaa; font-weight: 600; margin-bottom: 8px; }
+  .card-examples .item { font-size: 13px; color: #777; line-height: 1.7; padding: 2px 0; }
+
+  .nav-buttons { display: flex; gap: 10px; margin-top: 16px; }
+  .nav-btn {
+    flex: 1; padding: 14px 0; border-radius: 14px; font-weight: 700;
+    font-size: 14px; cursor: pointer; font-family: inherit; transition: all 0.2s;
+  }
+  .nav-prev { border: 2px solid #e0d8cc; background: transparent; color: #888; }
+  .nav-prev:disabled { color: #ccc; cursor: default; }
+  .nav-next { border: none; color: #fff; }
+  .nav-next:disabled { background: #e0d8cc !important; box-shadow: none !important; cursor: default; }
+
+  /* Examples View */
+  .examples-intro { font-size: 15px; color: #888; text-align: center; margin: 0 0 16px; line-height: 1.7; }
+  .example-card {
+    background: #fff; border-radius: 16px; padding: 18px 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05); margin-bottom: 12px;
+  }
+  .example-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; color: #2d2d2d; }
+  .example-action {
+    font-size: 13px; color: #98D8AA; font-weight: 600;
+    background: rgba(152,216,170,0.1); display: inline-block;
+    padding: 4px 10px; border-radius: 8px;
+  }
+  .examples-footer {
+    margin-top: 20px; background: #FFF9E6; border-radius: 14px;
+    padding: 16px; font-size: 14px; color: #8B7355; line-height: 1.8; text-align: center;
+  }
+
+  /* Overview View */
+  .overview-card {
+    background: #fff; border-radius: 20px; padding: 24px 18px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+  }
+  .overview-title { font-size: 16px; font-weight: 800; margin: 0 0 18px; text-align: center; }
+  .overview-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 10px; border-radius: 12px; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .overview-row:not(:last-child) { border-bottom: 1px solid #f0ebe3; }
+  .overview-row:hover { background: #faf6f0; }
+  .overview-icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .overview-info { flex: 1; }
+  .overview-info .name { font-size: 14px; font-weight: 700; color: #2d2d2d; }
+  .overview-info .preview { font-size: 12px; color: #aaa; }
+  .overview-badge {
+    font-size: 12px; font-weight: 700; padding: 4px 10px;
+    border-radius: 8px; flex-shrink: 0;
+  }
+  .time-bar-wrap {
+    margin-top: 16px; background: #fff; border-radius: 14px;
+    padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  }
+  .time-bar-label { font-size: 12px; color: #aaa; font-weight: 600; margin-bottom: 10px; text-align: center; }
+  .time-bar { display: flex; gap: 3px; height: 32px; border-radius: 10px; overflow: hidden; }
+  .time-bar div {
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: #fff; font-weight: 700;
+  }
+  .overview-hint { margin-top: 16px; text-align: center; font-size: 13px; color: #bbb; }
+
+  .view { display: none; }
+  .view.active { display: block; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="icon">🔬</div>
+  <h1>生活行動研究</h1>
+  <p>從你的日常好奇開始，30 分鐘變身小小研究員</p>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchView('steps')">📋 活動步驟</button>
+  <button class="tab-btn" onclick="switchView('examples')">💡 題目靈感</button>
+  <button class="tab-btn" onclick="switchView('overview')">⏱️ 全覽</button>
+</div>
+
+<!-- ===== STEPS VIEW ===== -->
+<div id="view-steps" class="view active">
+  <div class="dots" id="dots-container"></div>
+  <div id="step-card"></div>
+  <div class="nav-buttons">
+    <button class="nav-btn nav-prev" id="btn-prev" onclick="goStep(currentStep-1)">← 上一步</button>
+    <button class="nav-btn nav-next" id="btn-next" onclick="goStep(currentStep+1)">下一步 →</button>
+  </div>
+</div>
+
+<!-- ===== EXAMPLES VIEW ===== -->
+<div id="view-examples" class="view">
+  <p class="examples-intro">不知道要選什麼題目？看看這些靈感 👇</p>
+  <div id="examples-list"></div>
+  <div class="examples-footer">
+    這些只是參考，最好的題目是<strong>你自己有感覺的事</strong>！<br>
+    什麼讓你好奇？什麼讓你困擾？那就是最棒的起點 ✨
+  </div>
+</div>
+
+<!-- ===== OVERVIEW VIEW ===== -->
+<div id="view-overview" class="view">
+  <div class="overview-card" id="overview-list"></div>
+  <div class="time-bar-wrap">
+    <div class="time-bar-label">時間比例</div>
+    <div class="time-bar" id="time-bar"></div>
+  </div>
+  <div class="overview-hint">點任一步驟可跳到詳細說明 →</div>
+</div>
+
+<script>
+const steps = [
+  {
+    id: 1, time: "5 分鐘", emoji: "🗣️", title: "吐槽大會", color: "#FF8C69",
+    desc: "每個人拿便利貼，寫下 2～3 個你生活中覺得⋯⋯",
+    bullets: ["🤔 很奇怪、想不通的事", "😤 很不方便、很困擾的事", "🧐 很好奇、想知道為什麼的事"],
+    tip: "一張便利貼寫一個想法，不用想太多，越日常越好！寫完就貼到小組的大白紙上。",
+    examples: ["「為什麼學餐的排骨飯每次份量都不一樣？」", "「明明說好要早睡，結果又滑手機到兩點⋯」", "「校門口那隻橘貓到底住哪裡？」"],
+    exLabel: "例如⋯⋯"
+  },
+  {
+    id: 2, time: "5 分鐘", emoji: "🗳️", title: "分類 & 投票", color: "#FFB347",
+    desc: "大家一起看所有的便利貼，把相似的歸在一起，然後投票！",
+    bullets: ["📌 先把類似的便利貼分成幾組", "✋ 每人有 2 票，投給你最想探究的主題", "🏆 得票最高的那個，就是你們組的題目！"],
+    tip: "如果票數平手，可以快速討論 30 秒再決定，或是合併兩個題目。",
+    examples: [], exLabel: ""
+  },
+  {
+    id: 3, time: "8 分鐘", emoji: "🔍", title: "把題目變成研究", color: "#87CEEB",
+    desc: "選好題目後，小組一起討論這四個問題，把答案寫在大白紙上：",
+    bullets: ["① 我們觀察到什麼？（把現象說清楚）", "② 我們想問什麼？（你們的核心問題）", "③ 我們猜原因是？（大膽假設沒關係）", "④ 我們可以做什麼來改變？（行動點子）"],
+    tip: "不需要完美答案！這是初步構想，重點是把模糊的好奇心變成具體的方向。",
+    examples: ["觀察：回收桶旁邊總是分錯類", "問題：為什麼同學分類正確率這麼低？", "猜測：標示不夠清楚、趕時間沒仔細看", "行動：重新設計標示，比較更換前後的正確率"],
+    exLabel: "像這樣 ↓"
+  },
+  {
+    id: 4, time: "10 分鐘", emoji: "🎤", title: "一分鐘快講", color: "#98D8AA",
+    desc: "每組派一位代表，用 1～2 分鐘跟全班分享：",
+    bullets: ["📢 「我們的題目是＿＿」", "📢 「我們想探究＿＿」", "📢 「我們打算嘗試＿＿」"],
+    tip: "聽別組分享的時候，想想你能給他們什麼建議或鼓勵！",
+    examples: [], exLabel: ""
+  },
+  {
+    id: 5, time: "2 分鐘", emoji: "✍️", title: "一句話反思", color: "#C3B1E1",
+    desc: "最後，每個人在一張便利貼上完成這句話：",
+    bullets: [],
+    tip: "寫完貼到教室的反思牆上，看看大家都發現了什麼！",
+    special: "「今天的討論讓我發現 ___________。」",
+    examples: [], exLabel: ""
+  }
+];
+
+const exampleTopics = [
+  { emoji: "🍜", topic: "學餐哪道菜 CP 值最高？", action: "實際秤重比較，做出推薦排行榜" },
+  { emoji: "📱", topic: "為什麼我總是熬夜滑手機？", action: "組員互相監督，挑戰一週「睡前放下手機」" },
+  { emoji: "🐱", topic: "校園貓咪都躲在哪？", action: "分工觀察一週，繪製校園貓咪地圖" },
+  { emoji: "♻️", topic: "回收桶為什麼永遠分錯？", action: "重新設計標示，比較前後正確率" },
+  { emoji: "☕", topic: "飲料店怎麼點最快？", action: "實測現場/APP/電話三種方式的等待時間" }
+];
+
+let currentStep = 0;
+
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach((btn, i) => {
+    btn.classList.toggle('active', ['steps','examples','overview'][i] === name);
+  });
+}
+
+function goStep(i) {
+  if (i < 0 || i >= steps.length) return;
+  currentStep = i;
+  renderStep();
+}
+
+function renderStep() {
+  const s = steps[currentStep];
+  // dots
+  const dotsHTML = steps.map((st, i) =>
+    `<button class="dot ${i === currentStep ? 'active' : 'inactive'}" style="${i === currentStep ? 'background:'+st.color : ''}" onclick="goStep(${i})"></button>`
+  ).join('');
+  document.getElementById('dots-container').innerHTML = dotsHTML;
+
+  // card
+  let html = `<div class="card" style="border:2px solid ${s.color}44">`;
+  html += `<div class="card-header">
+    <div class="card-icon" style="background:${s.color}22">${s.emoji}</div>
+    <div>
+      <div class="card-step" style="color:${s.color}">Step ${s.id}・${s.time}</div>
+      <div class="card-title">${s.title}</div>
+    </div>
+  </div>`;
+  html += `<p class="card-desc">${s.desc}</p>`;
+
+  if (s.bullets.length > 0) {
+    html += `<div class="card-bullets" style="background:${s.color}11">`;
+    s.bullets.forEach(b => { html += `<div>${b}</div>`; });
+    html += `</div>`;
+  }
+  if (s.special) {
+    html += `<div class="card-special" style="background:${s.color}22">${s.special}</div>`;
+  }
+  if (s.tip) {
+    html += `<div class="card-tip">💡 <strong>小提示：</strong>${s.tip}</div>`;
+  }
+  if (s.examples.length > 0) {
+    html += `<div class="card-examples"><div class="label">${s.exLabel}</div>`;
+    s.examples.forEach(ex => { html += `<div class="item">${ex}</div>`; });
+    html += `</div>`;
+  }
+  html += `</div>`;
+  document.getElementById('step-card').innerHTML = html;
+
+  // buttons
+  const prev = document.getElementById('btn-prev');
+  const next = document.getElementById('btn-next');
+  prev.disabled = currentStep === 0;
+  prev.style.color = currentStep === 0 ? '#ccc' : '#888';
+  next.disabled = currentStep === steps.length - 1;
+  next.style.background = currentStep === steps.length - 1 ? '#e0d8cc' : s.color;
+  next.style.boxShadow = currentStep === steps.length - 1 ? 'none' : `0 4px 12px ${s.color}55`;
+}
+
+function renderExamples() {
+  const list = document.getElementById('examples-list');
+  list.innerHTML = exampleTopics.map(t =>
+    `<div class="example-card">
+      <div class="example-title">${t.emoji} ${t.topic}</div>
+      <div class="example-action">→ 行動構想：${t.action}</div>
+    </div>`
+  ).join('');
+}
+
+function renderOverview() {
+  const list = document.getElementById('overview-list');
+  let html = `<h3 class="overview-title">30 分鐘怎麼用？</h3>`;
+  steps.forEach((s, i) => {
+    html += `<div class="overview-row" onclick="switchView('steps');goStep(${i})">
+      <div class="overview-icon" style="background:${s.color}22">${s.emoji}</div>
+      <div class="overview-info">
+        <div class="name">${s.title}</div>
+        <div class="preview">${s.desc.slice(0,25)}⋯</div>
+      </div>
+      <div class="overview-badge" style="background:${s.color}22;color:${s.color}">${s.time}</div>
+    </div>`;
+  });
+  list.innerHTML = html;
+
+  const bar = document.getElementById('time-bar');
+  bar.innerHTML = steps.map(s => {
+    const min = parseInt(s.time);
+    return `<div style="flex:${min};background:${s.color}99">${min > 3 ? s.emoji + ' ' + min + "'" : min + "'"}</div>`;
+  }).join('');
+}
+
+// Init
+renderStep();
+renderExamples();
+renderOverview();
+</script>
+</body>
+</html>
