@@ -25,7 +25,9 @@
   --r: 16px;
 }
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); height:100vh; overflow:hidden; }
+body { font-family:'Nunito','Noto Sans TC',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; -webkit-overflow-scrolling:touch; }
+/* 只有老師大螢幕投影模式需要鎖住滿版不捲動 */
+body.teacher-locked { height:100vh; overflow:hidden; }
 #teacher-view { display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 /* ── LOADING ── */
 #loading {
@@ -977,6 +979,7 @@ async function initTeacher() {
 
   document.getElementById('loading').style.display = 'none';
   document.getElementById('teacher-view').classList.remove('hidden');
+  document.body.classList.add('teacher-locked');
   qbLoad();
   rosterLoad();
   loadTheme();
@@ -1288,7 +1291,7 @@ function togglePanel() {
   overlay.classList.toggle('open', willOpen);
   btn.classList.toggle('open', willOpen);
   // 面板開啟時解除 body overflow 鎖定，讓面板可以捲動
-  document.body.style.overflow = willOpen ? '' : 'hidden';
+  document.body.classList.toggle('teacher-locked', !willOpen);
 }
 
 // ════════════════════════════════════════════════════
@@ -2113,7 +2116,7 @@ async function initMobileTeacher() {
   document.getElementById('mobile-teacher-view').classList.add('active');
   document.getElementById('teacher-view').classList.add('hidden');
   document.getElementById('student-view').classList.add('hidden');
-  document.body.style.overflow = 'auto';
+  document.body.classList.remove('teacher-locked');
   mtRenderAll();
 }
 
