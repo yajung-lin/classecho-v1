@@ -844,13 +844,27 @@ const CARD_ACCENT = ['var(--pink)','var(--primary)','var(--mint)','var(--lavende
 const CHART_COLORS = ['#5E97C0','#F2A5B2','#8ECF9E','#F5D58A','#B8A9E8','#F5BE9A','#A5D4F0'];
 
 // ════════════════════════════════════════════════════
+// 帶逾時保護的 fetch（避免手機網路卡住時無限等待）
+// ════════════════════════════════════════════════════
+async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const r = await fetch(url, { ...options, signal: controller.signal });
+    return r;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ════════════════════════════════════════════════════
 // STORAGE LAYER (Firebase REST or BroadcastChannel)
 // ════════════════════════════════════════════════════
 const Store = {
   async save(roomId, response) {
     const entry = { ...response, ts: Date.now(), id: Math.random().toString(36).slice(2,10) };
     if (App.useFirebase) {
-      await fetch(`${FIREBASE_URL}/rooms/${roomId}/responses.json`, {
+      await fetchWithTimeout(`${FIREBASE_URL}/rooms/${roomId}/responses.json`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(entry)
       });
@@ -865,10 +879,14 @@ const Store = {
 
   async load(roomId) {
     if (App.useFirebase) {
-      const r = await fetch(`${FIREBASE_URL}/rooms/${roomId}/responses.json`);
-      const data = await r.json();
-      if (!data || typeof data !== 'object') return [];
-      return Object.values(data).sort((a, b) => a.ts - b.ts);
+      try {
+        const r = await fetchWithTimeout(`${FIREBASE_URL}/rooms/${roomId}/responses.json`);
+        const data = await r.json();
+        if (!data || typeof data !== 'object') return [];
+        return Object.values(data).sort((a, b) => a.ts - b.ts);
+      } catch(e) {
+        return [];
+      }
     } else {
       return JSON.parse(localStorage.getItem(`ce_${roomId}_data`) || '[]');
     }
@@ -876,7 +894,7 @@ const Store = {
 
   async saveQuestion(roomId, q) {
     if (App.useFirebase) {
-      await fetch(`${FIREBASE_URL}/rooms/${roomId}/question.json`, {
+      await fetchWithTimeout(`${FIREBASE_URL}/rooms/${roomId}/question.json`, {
         method: 'PUT', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(q)
       });
@@ -888,8 +906,12 @@ const Store = {
 
   async loadQuestion(roomId) {
     if (App.useFirebase) {
-      const r = await fetch(`${FIREBASE_URL}/rooms/${roomId}/question.json`);
-      return await r.json();
+      try {
+        const r = await fetchWithTimeout(`${FIREBASE_URL}/rooms/${roomId}/question.json`);
+        return await r.json();
+      } catch(e) {
+        return null;
+      }
     } else {
       return JSON.parse(localStorage.getItem(`ce_${roomId}_q`) || 'null');
     }
@@ -897,7 +919,7 @@ const Store = {
 
   async clear(roomId) {
     if (App.useFirebase) {
-      await fetch(`${FIREBASE_URL}/rooms/${roomId}/responses.json`, { method: 'DELETE' });
+      await fetchWithTimeout(`${FIREBASE_URL}/rooms/${roomId}/responses.json`, { method: 'DELETE' });
     } else {
       localStorage.removeItem(`ce_${roomId}_data`);
       App.channel?.postMessage({ type: 'CLEAR', roomId });
@@ -1015,7 +1037,7 @@ async function pollResponses() {
     }
     // Listen for display mode changes from mobile teacher
     // 只有當手機端有新的指令時才切換，不覆蓋電腦端手動操作
-    const modeResp = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`);
+    const modeResp = await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`);
     const modeData = await modeResp.json();
     const remoteMode = typeof modeData === 'string' ? modeData : modeData?.mode;
     const remoteTs = modeData?.ts || 0;
@@ -1024,7 +1046,7 @@ async function pollResponses() {
       setMode(remoteMode);
     }
     // Listen for carousel commands from mobile
-    const cmdResp = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`);
+    const cmdResp = await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`);
     const cmdData = await cmdResp.json();
     if (cmdData && cmdData.ts && cmdData.ts !== App.lastCarouselCmd) {
       App.lastCarouselCmd = cmdData.ts;
@@ -1034,7 +1056,7 @@ async function pollResponses() {
       else if (cmdData.cmd === 'resume') { App.carouselPaused = false; document.getElementById('carousel-pause-btn').textContent = '⏸'; resetCarouselTimer(); }
     }
     // Listen for font size from mobile
-    const fontResp = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/fontSize.json`);
+    const fontResp = await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/fontSize.json`);
     const fontSize = await fontResp.json();
     if (fontSize && fontSize !== App.lastFontSize) {
       App.lastFontSize = fontSize;
@@ -1080,15 +1102,16 @@ async function applyQuestion() {
 }
 
 function updateQuestionDisplay() {
-  document.getElementById('q-text-display').textContent = App.question.text;
-  document.getElementById('s-question-text').textContent = App.question.text;
+  document.getElementById('q-text-display').textContent = App.question.text || '';
+  document.getElementById('s-question-text').textContent = App.question.text || '';
   const isVote = App.question.type === 'vote';
   document.getElementById('s-text-field').style.display = isVote ? 'none' : 'block';
   document.getElementById('s-vote-field').style.display = isVote ? 'block' : 'none';
   if (isVote) {
     const container = document.getElementById('vote-options');
     container.innerHTML = '';
-    App.question.options.forEach(opt => {
+    const opts = Array.isArray(App.question.options) ? App.question.options : [];
+    opts.forEach(opt => {
       const btn = document.createElement('button');
       btn.className = 'vote-btn'; btn.textContent = opt;
       btn.onclick = () => {
@@ -1168,7 +1191,8 @@ function renderChart() {
   }
   content.style.display = 'flex';
   const counts = {};
-  App.question.options.forEach(o => counts[o] = 0);
+  const voteOpts = Array.isArray(App.question.options) ? App.question.options : [];
+  voteOpts.forEach(o => counts[o] = 0);
   App.responses.forEach(r => { if (r.vote && counts[r.vote] !== undefined) counts[r.vote]++; });
   const labels = Object.keys(counts);
   const data = Object.values(counts);
@@ -1302,6 +1326,20 @@ async function initStudent(roomId) {
   App.useFirebase = !!FIREBASE_URL;
   App.roomId = roomId;
 
+  // 保險：不論後續發生什麼，最多 10 秒就強制關掉 loading，讓學生能填答
+  const loadingFailsafe = setTimeout(() => {
+    const ld = document.getElementById('loading');
+    if (ld && ld.style.display !== 'none') {
+      ld.style.display = 'none';
+      document.getElementById('student-view').classList.remove('hidden');
+      document.getElementById('no-room').style.display = 'none';
+      document.getElementById('student-form').style.display = 'block';
+      document.getElementById('student-success').style.display = 'none';
+      showToast('連線較慢，已為你載入作答畫面');
+    }
+  }, 10000);
+  App._loadingFailsafe = loadingFailsafe;
+
   if (!App.useFirebase) {
     App.channel = new BroadcastChannel('classecho_' + roomId);
     App.channel.onmessage = async (ev) => {
@@ -1314,7 +1352,9 @@ async function initStudent(roomId) {
 
   try {
     const q = await Store.loadQuestion(roomId);
-    if (q && q.text) { App.question = q; }
+    if (q && q.text) {
+      App.question = { text: q.text, type: q.type || 'text', options: Array.isArray(q.options) ? q.options : [] };
+    }
   } catch(e) {}
 
   updateQuestionDisplay();
@@ -1322,9 +1362,17 @@ async function initStudent(roomId) {
   App.pollTimer = setInterval(async () => {
     try {
       const q2 = await Store.loadQuestion(roomId);
-      if (q2 && q2.text !== App.question.text) { App.question = q2; updateQuestionDisplay(); }
+      if (q2 && q2.text) {
+        const changed = q2.text !== App.question.text
+          || q2.type !== App.question.type
+          || JSON.stringify(q2.options || []) !== JSON.stringify(App.question.options || []);
+        if (changed) {
+          App.question = { text: q2.text, type: q2.type || 'text', options: Array.isArray(q2.options) ? q2.options : [] };
+          updateQuestionDisplay();
+        }
+      }
     } catch(e) {}
-    wbSyncFromFirebase(roomId);
+    try { wbSyncFromFirebase(roomId); } catch(e) {}
   }, 2000);
 
   // Show student whiteboard
@@ -1335,6 +1383,7 @@ async function initStudent(roomId) {
     document.getElementById('student-whiteboard').style.display = 'block';
   }
 
+  clearTimeout(App._loadingFailsafe);
   document.getElementById('loading').style.display = 'none';
   document.getElementById('student-view').classList.remove('hidden');
   document.getElementById('no-room').style.display = 'none';
@@ -2128,7 +2177,7 @@ async function mtPollResponses() {
   } catch(e) {}
   // Also poll display mode from Firebase so phone stays in sync
   try {
-    const r = await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`);
+    const r = await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`);
     const mode = await r.json();
     if (mode && mode !== App.displayMode) {
       App.displayMode = mode;
@@ -2156,7 +2205,7 @@ async function mtSetMode(mode) {
   mtUpdateModeButtons();
   // Sync to Firebase with timestamp so big screen knows it's a new command
   try {
-    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`, {
+    await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/displayMode.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ mode, ts: Date.now() })
@@ -2263,7 +2312,7 @@ function mtQuickAddToBank() {
 // 輪播控制
 async function mtCarouselNext() {
   try {
-    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
+    await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cmd: 'next', ts: Date.now() })
     });
@@ -2273,7 +2322,7 @@ async function mtCarouselNext() {
 
 async function mtCarouselPrev() {
   try {
-    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
+    await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cmd: 'prev', ts: Date.now() })
     });
@@ -2287,7 +2336,7 @@ async function mtTogglePause() {
   const btn = document.getElementById('mt-pause-btn');
   btn.textContent = mtPaused ? '▶ 繼續' : '⏸ 暫停';
   try {
-    await fetch(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
+    await fetchWithTimeout(`${FIREBASE_URL}/rooms/${App.roomId}/carouselCmd.json`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ cmd: mtPaused ? 'pause' : 'resume', ts: Date.now() })
     });
@@ -2368,7 +2417,7 @@ function wbSyncToFirebase() {
 async function wbSyncFromFirebase(roomId) {
   if (!FIREBASE_URL || !roomId) return;
   try {
-    const r = await fetch(`${FIREBASE_URL}/rooms/${roomId}/whiteboard.json`);
+    const r = await fetchWithTimeout(`${FIREBASE_URL}/rooms/${roomId}/whiteboard.json`);
     const data = await r.json();
     if (!data || !data.data) return;
     const canvas = document.getElementById('wb-student-canvas');
