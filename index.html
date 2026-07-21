@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專業合作與家庭支援 - PCFAST™ 學習平台 ｜ 國立臺中教育大學 幼兒教育學系</title>
+    <!-- 引入 Google Fonts 與 FontAwesome 圖標庫 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        :root {
+            /* 韓系莫蘭迪馬卡龍色系 Palette */
+            --bg-oatmeal: #f8f6f0;       /* 柔奶燕麥底色 */
+            --card-bg: #ffffff;          /* 純白卡片底色 */
+            --primary-sage: #7a9a8b;     /* 莫蘭迪鼠尾草綠 (主色) */
+            --sage-hover: #638274;       /* 鼠尾草綠 hover */
+            --sage-light: #eaf1ed;       /* 鼠尾草極淺淡綠 */
+            --secondary-peach: #e8a892;  /* 柔蜜桃粉/奶茶粉 (點綴色) */
+            --peach-light: #fbf0ec;      /* 蜜桃粉極淺底色 */
+            --text-main: #3e4441;        /* 暖深灰棕 (統一標題與主要文字) */
+            --text-sub: #78827e;         /* 次要灰綠內文 */
+            --border-soft: #e2ded6;      /* 柔和細邊框 */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            font-family: 'Noto Sans TC', 'Poppins', sans-serif;
+            background-color: var(--bg-oatmeal);
+            color: var(--text-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ==================== SECTION 1: HERO CANVAS 封面 ==================== */
+        #hero-section {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 40%, #fdfcf9 0%, var(--bg-oatmeal) 100%);
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        .content-overlay {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 90%;
+            max-width: 920px;
+            padding: 40px 30px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 32px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 20px 40px rgba(122, 154, 139, 0.08);
+        }
+        
+        /* 單位與主持人標籤 */
+        .institution-tag {
+            font-size: 0.9rem;
+            letter-spacing: 1.5px;
+            color: var(--primary-sage);
+            background: var(--sage-light);
+            padding: 8px 22px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 500;
+            border: 1px solid rgba(122, 154, 139, 0.2);
+            opacity: 0;
+            animation: fadeInDown 1s forwards 0.2s;
+        }
+
+        /* 官方英文全稱與 PCFAST™ 品牌眉題 */
+        .brand-overline {
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            color: var(--text-sub);
+            margin-bottom: 18px;
+            font-weight: 500;
+            opacity: 0;
+            animation: fadeInDown 1s forwards 0.4s;
+        }
+        .main-title {
+            font-size: 3.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            line-height: 1.35;
+            margin-bottom: 22px;
+            color: var(--text-main); /* 主標題完全統一為黑色/深灰棕 */
+            opacity: 0;
+            animation: fadeIn 1.2s forwards 0.6s;
+        }
+        .description {
+            font-size: 1.05rem;
+            color: var(--text-sub);
+            line-height: 1.85;
+            margin-bottom: 35px;
+            letter-spacing: 0.5px;
+            opacity: 0;
+            animation: fadeIn 1.5s forwards 0.8s;
+        }
+        .cta-btn {
+            display: inline-block;
+            padding: 16px 42px;
+            background-color: var(--primary-sage);
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            box-shadow: 0 10px 25px rgba(122, 154, 139, 0.3);
+            transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+            opacity: 0;
+            animation: fadeInUp 1s forwards 1s;
+            cursor: pointer;
+            border: none;
+        }
+        .cta-btn:hover {
+            background-color: var(--sage-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 14px 30px rgba(122, 154, 139, 0.4);
+        }
+
+        /* ==================== SECTION 2: 三大階段 ICON 區塊 ==================== */
+        #timeline-section {
+            position: relative;
+            width: 100%;
+            min-height: 100vh;
+            background-color: var(--bg-oatmeal);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 20px 60px 20px;
+            z-index: 2;
+        }
+        .section-title {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+        .section-title h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--text-main);
+            margin-bottom: 12px;
+        }
+        .section-title p {
+            color: var(--text-sub);
+            font-size: 1.05rem;
+            letter-spacing: 1px;
+        }
+        
+        .cards-container {
+            display: flex;
+            width: 100%;
+            max-width: 1180px;
+            justify-content: space-between;
+            gap: 28px;
+            position: relative;
+            margin-bottom: 60px;
+        }
+        .stage-card {
+            flex: 1;
+            background: var(--card-bg);
+            border: 1px solid var(--border-soft);
+            border-radius: 28px;
+            padding: 42px 30px;
+            text-align: center;
+            transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+        }
+        .stage-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--primary-sage);
+            box-shadow: 0 20px 40px rgba(122, 154, 139, 0.15);
+        }
+        
+        /* 韓系圓潤 Icon 框 */
+        .icon-wrapper {
+            width: 85px;
+            height: 85px;
+            background: var(--sage-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 28px auto;
+            transition: all 0.35s ease;
+        }
+        .stage-card:hover .icon-wrapper {
+            background: var(--primary-sage);
+            transform: scale(1.08);
+        }
+        .icon-wrapper i {
+            font-size: 2rem;
+            color: var(--primary-sage);
+            transition: color 0.35s ease;
+        }
+        .stage-card:hover .icon-wrapper i {
+            color: #ffffff;
+        }
+
+        /* 蜜桃橘點綴卡片 (中間階段特化) */
+        .stage-card.featured {
+            border-color: rgba(232, 168, 146, 0.5);
+            background: linear-gradient(180deg, #ffffff 0%, #fffbf8 100%);
+        }
+        .stage-card.featured .icon-wrapper {
+            background: var(--peach-light);
+        }
+        .stage-card.featured .icon-wrapper i {
+            color: var(--secondary-peach);
+        }
+        .stage-card.featured:hover .icon-wrapper {
+            background: var(--secondary-peach);
+        }
+        .stage-card.featured:hover .icon-wrapper i {
+            color: #ffffff;
+        }
+
+        .card-tag {
+            display: inline-block;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--primary-sage);
+            background: var(--sage-light);
+            padding: 6px 16px;
+            border-radius: 50px;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+        }
+        .stage-card.featured .card-tag {
+            color: #d67d62;
+            background: var(--peach-light);
+        }
+
+        .card-title {
+            font-size: 1.45rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--text-main);
+        }
+        .card-desc {
+            font-size: 0.95rem;
+            color: var(--text-sub);
+            line-height: 1.75;
+            margin-bottom: 28px;
+        }
+        
+        .card-btn {
+            display: block;
+            width: 100%;
+            padding: 13px;
+            background: var(--bg-oatmeal);
+            border: 1px solid var(--border-soft);
+            color: var(--text-main);
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            font-size: 0.92rem;
+        }
+        .stage-card:hover .card-btn {
+            background: var(--primary-sage);
+            border-color: var(--primary-sage);
+            color: #ffffff;
+        }
+        .stage-card.featured:hover .card-btn {
+            background: var(--secondary-peach);
+            border-color: var(--secondary-peach);
+            color: #ffffff;
+        }
+
+        /* ==================== FOOTER: 著作權與智慧財產權宣告 (版本 B) ==================== */
+        footer {
+            width: 100%;
+            text-align: center;
+            padding: 45px 20px;
+            background: #ffffff;
+            border-top: 1px solid var(--border-soft);
+            z-index: 10;
+        }
+        .footer-copyright {
+            font-size: 0.92rem;
+            color: var(--primary-sage);
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .footer-author {
+            font-size: 0.9rem;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .footer-notice {
+            font-size: 0.78rem;
+            color: var(--text-sub);
+            letter-spacing: 0.3px;
+            line-height: 1.65;
+            max-width: 850px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 968px) {
+            .cards-container {
+                flex-direction: column;
+                gap: 30px;
+            }
+            .main-title {
+                font-size: 2.3rem;
+            }
+            #hero-section, #timeline-section {
+                height: auto;
+                min-height: 100vh;
+            }
+            .content-overlay {
+                padding: 30px 20px;
+            }
+        }
+
+        /* ==================== SECTION: 教案卡片牆 & 詳情頁 ==================== */
+        .view-section {
+            display: none;
+            width: 100%;
+            min-height: 100vh;
+            padding: 90px 24px 70px 24px;
+            background-color: var(--bg-oatmeal);
+        }
+        .view-section.active { display: block; }
+
+        .view-inner {
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin-bottom: 28px;
+            cursor: pointer;
+            transition: color 0.25s ease;
+        }
+        .back-link:hover { color: var(--primary-sage); }
+
+        .view-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .view-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .view-header p {
+            color: var(--text-sub);
+            font-size: 1rem;
+        }
+
+        /* 卡片牆 Grid */
+        .wall-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 24px;
+        }
+        .assignment-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-soft);
+            border-radius: 24px;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            min-height: 230px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+        .assignment-card.is-ready {
+            cursor: pointer;
+        }
+        .assignment-card.is-ready:hover {
+            transform: translateY(-6px);
+            border-color: var(--primary-sage);
+            box-shadow: 0 18px 36px rgba(122, 154, 139, 0.15);
+        }
+        .assignment-card.is-soon {
+            opacity: 0.55;
+        }
+        .card-status {
+            display: inline-block;
+            align-self: flex-start;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 5px 14px;
+            border-radius: 50px;
+            margin-bottom: 16px;
+        }
+        .card-status.ready {
+            background: var(--sage-light);
+            color: var(--primary-sage);
+        }
+        .card-status.soon {
+            background: #f0eeea;
+            color: var(--text-sub);
+        }
+        .assignment-card h3 {
+            font-size: 1.15rem;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+        .assignment-card .assignment-subtitle {
+            font-size: 0.85rem;
+            color: var(--secondary-peach);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .assignment-card p.assignment-summary {
+            font-size: 0.9rem;
+            color: var(--text-sub);
+            line-height: 1.6;
+            flex-grow: 1;
+        }
+        .card-view-btn {
+            margin-top: 18px;
+            align-self: flex-start;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--primary-sage);
+        }
+
+        /* 詳情頁 */
+        .detail-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-soft);
+            border-radius: 28px;
+            padding: 46px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+        }
+        .detail-tag {
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--secondary-peach);
+            background: var(--peach-light);
+            padding: 5px 16px;
+            border-radius: 50px;
+            margin-bottom: 16px;
+        }
+        .detail-card h2 {
+            font-size: 1.9rem;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
+        .detail-subtitle {
+            font-size: 1rem;
+            color: var(--text-sub);
+            margin-bottom: 26px;
+        }
+        .detail-block {
+            margin-bottom: 30px;
+        }
+        .detail-block h4 {
+            font-size: 1rem;
+            color: var(--primary-sage);
+            margin-bottom: 10px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .detail-block p, .detail-block li {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            line-height: 1.8;
+        }
+        .detail-block ul, .detail-block ol {
+            padding-left: 22px;
+        }
+        .stage-flow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .stage-chip {
+            background: var(--sage-light);
+            color: var(--primary-sage);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 50px;
+        }
+
+        /* QR 區塊 */
+        .qr-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            background: var(--bg-oatmeal);
+            border-radius: 22px;
+            padding: 32px;
+            margin-top: 10px;
+        }
+        .qr-block {
+            flex: 1;
+            min-width: 220px;
+            text-align: center;
+        }
+        .qr-section-single {
+            justify-content: center;
+        }
+        .qr-section-single .qr-block {
+            flex: none;
+            max-width: 280px;
+        }
+        .qr-block h5 {
+            font-size: 0.95rem;
+            color: var(--text-main);
+            margin-bottom: 14px;
+            font-weight: 700;
+        }
+        .qr-canvas-wrap {
+            background: #fff;
+            display: inline-block;
+            padding: 14px;
+            border-radius: 16px;
+            border: 1px solid var(--border-soft);
+        }
+        .qr-link {
+            display: block;
+            margin-top: 12px;
+            font-size: 0.8rem;
+            color: var(--text-sub);
+            word-break: break-all;
+        }
+        .qr-link a {
+            color: var(--primary-sage);
+            text-decoration: none;
+        }
+
+        @media (max-width: 640px) {
+            .detail-card { padding: 30px 22px; }
+            .qr-section { padding: 22px; gap: 24px; }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SECTION 1: CANVAS 動態韓系柔光封面 -->
+    <section id="hero-section">
+        <canvas id="hero-canvas"></canvas>
+        <div class="content-overlay">
+            <!-- 國立臺中教育大學 幼兒教育學系 單位標籤 -->
+            <div class="institution-tag">
+                <i class="fa-solid fa-graduation-cap" style="margin-right: 8px;"></i>國立臺中教育大學 幼兒教育學系
+            </div>
+
+            <!-- 官方英文全稱與 PCFAST™ 品牌聲明 -->
+            <p class="brand-overline">
+                Professional Collaboration and Family Support Teaching Platform (PCFAST™)
+            </p>
+            
+            <!-- 主標題：全黑/暖灰黑顏色統一呈現 -->
+            <h1 class="main-title">專業合作與家庭支援</h1>
+            
+            <p class="description">
+                結合布魯姆認知架構與動態學習鷹架，建構跨專業團隊的溝通橋樑。<br>
+                透過 PCFAST™ 三階段 AI 數位體系，深化助人專業 Core 臨床決策與家庭支持能力。
+            </p>
+            
+            <a href="#timeline-section" class="cta-btn">開啟 PCFAST™ 學習鷹架 <i class="fa-solid fa-arrow-down" style="margin-left: 8px;"></i></a>
+        </div>
+    </section>
+
+    <!-- SECTION 2: 三大階段 ICON 區塊 -->
+    <section id="timeline-section">
+        <div class="section-title">
+            <h2>PCFAST™ 三階段 AI 學習鷹架總覽</h2>
+            <p>橫向貫穿課前、課中與課後，打造全方位臨床實作力</p>
+        </div>
+
+        <div class="cards-container">
+            <!-- 階段一 -->
+            <div class="stage-card">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-book-open-reader"></i>
+                </div>
+                <span class="card-tag">PHASE 01 ｜ 初階認知</span>
+                <h3 class="card-title">課前自主預習</h3>
+                <p class="card-desc">引導登入【校內 AI 系統】上傳核心文獻與法規，由 AI 自動轉化觀念學習卡與基礎觀念測驗，完成專業打底。</p>
+                <a href="#" class="card-btn">查看系統導引 ➔</a>
+            </div>
+
+            <!-- 階段二 (特色亮點卡片) -->
+            <div class="stage-card featured">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-gamepad"></i>
+                </div>
+                <span class="card-tag">PHASE 02 ｜ 中階應用</span>
+                <h3 class="card-title">課中互動沙盒</h3>
+                <p class="card-desc">進入課堂現場互動主戰場，開啟「教案卡片牆」一鍵串接 GitHub 客製化 AI 模擬小遊戲，進行跨組對戰與案例探討。</p>
+                <a href="javascript:void(0)" class="card-btn" onclick="showWall()">進入教案卡片牆 ➔</a>
+            </div>
+
+            <!-- 階段三 -->
+            <div class="stage-card">
+                <div class="icon-wrapper">
+                    <i class="fa-solid fa-scale-balanced"></i>
+                </div>
+                <span class="card-tag">PHASE 03 ｜ 高階評估</span>
+                <h3 class="card-title">課後專業辯證</h3>
+                <p class="card-desc">回歸【校內 AI 系統】上傳課堂實戰成果，由虛擬督導進行嚴格的倫理與實務批判提問，淬鍊提升家庭服務之能力。</p>
+                <a href="#" class="card-btn">查看作業指引 ➔</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: 教案卡片牆 -->
+    <section id="wall-section" class="view-section">
+        <div class="view-inner">
+            <a class="back-link" onclick="backToTimeline()">
+                <i class="fa-solid fa-arrow-left"></i> 返回三階段總覽
+            </a>
+            <div class="view-header">
+                <h2>教案卡片牆</h2>
+                <p>課中互動沙盒｜點選已完成的案例，查看操作說明與學生作答連結</p>
+            </div>
+            <div class="wall-grid" id="wall-grid"></div>
+        </div>
+    </section>
+
+    <!-- SECTION: 案例詳情頁 -->
+    <section id="detail-section" class="view-section">
+        <div class="view-inner">
+            <a class="back-link" onclick="backToWall()">
+                <i class="fa-solid fa-arrow-left"></i> 返回教案卡片牆
+            </a>
+            <div id="detail-content"></div>
+        </div>
+    </section>
+
+    <footer>
+        <p class="footer-copyright">
+            © 2026 PCFAST™ (Professional Collaboration and Family Support Teaching Platform). All Rights Reserved.
+        </p>
+        <p class="footer-author">
+            計畫主持人：林雅容 博士 ｜ 國立臺中教育大學 幼兒教育學系
+        </p>
+        <p class="footer-notice">
+            教育部教學實踐研究計畫成果展示平台 ｜ 本網站之教學設計、理論模型及 PCFAST™ 系統架構均受著作權法保護，未經書面授權同意，不得以任何形式重製、改作、散佈或轉載。
+        </p>
+    </footer>
+
+    <!-- Canvas 背景韓風柔和光暈粒子動畫 -->
+    <script>
+        const canvas = document.getElementById('hero-canvas');
+        const ctx = canvas.getContext('2d');
+
+        let particlesArray = [];
+        const numberOfParticles = 45;
+
+        function setCanvasSize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        setCanvasSize();
+        window.addEventListener('resize', setCanvasSize);
+
+        class SoftParticle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 25 + 10;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.speedY = Math.random() * 0.4 - 0.2;
+                this.color = Math.random() > 0.5 ? 'rgba(122, 154, 139, 0.12)' : 'rgba(232, 168, 146, 0.12)';
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                if (this.x < -30 || this.x > canvas.width + 30) this.speedX *= -1;
+                if (this.y < -30 || this.y > canvas.height + 30) this.speedY *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+            }
+        }
+
+        function init() {
+            particlesArray = [];
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new SoftParticle());
+            }
+        }
+        init();
+
+        function drawConnections() {
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let dx = particlesArray[a].x - particlesArray[b].x;
+                    let dy = particlesArray[a].y - particlesArray[b].y;
+                    let distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 180) {
+                        ctx.save();
+                        ctx.globalAlpha = (1 - (distance / 180)) * 0.15;
+                        ctx.beginPath();
+                        ctx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        ctx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        ctx.strokeStyle = '#7a9a8b';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+            }
+            drawConnections();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+
+    <!-- 教案卡片牆：資料與互動邏輯 -->
+    <script>
+        // ╔══════════════════════════════════════════════════════════╗
+        // ║  ASSIGNMENTS DATA — 老師之後新增案例，只需在此陣列加入物件      ║
+        // ║  tags 欄位目前留空，未來要做篩選功能時，直接填入陣列即可        ║
+        // ╚══════════════════════════════════════════════════════════╝
+        const ASSIGNMENTS = [
+            {
+                id: "guarantor",
+                status: "ready",
+                title: "幼教老師的保證人地位",
+                subtitle: "以剴剴案為引的模擬沙盒",
+                summary: "透過六階段沙盤推演，讓學生在職業現場觀察、衝突決策、法律裁決中，親身體會幼教人員的強制通報義務與保證人地位。",
+                legalBasis: "刑法第15條／兒童及少年福利與權益保障法第53條",
+                tags: [],
+                objectives: [
+                    "理解「保證人地位」與強制通報義務的法律意涵",
+                    "在職業現場情境中辨識疑似受虐跡象並保全證據",
+                    "面對行政壓力與人情關說時，練習依法決策",
+                    "反思通報後續效應，建立專業角色的責任意識"
+                ],
+                stages: [
+                    "職業現場觀察", "衝突決策", "法律裁決",
+                    "點名觀察", "責任天平", "通報後效與反思"
+                ],
+                context: "案例以近年備受關注的剴剴案為引，模擬幼教老師在日常晨檢中發現疑似受虐跡象後，所面臨的專業判斷與法律責任。學生將依序經歷現場觀察、來自園方與家長的關說壓力、法律裁決、多名幼兒的複合警訊評估，最終回顧通報後的效應與反思。",
+                studentUrl: "https://yajung-lin.github.io/classecho-v1/sandbox-universal.html"
+            },
+            {
+                id: "xiaomi",
+                status: "soon",
+                title: "小米的家",
+                subtitle: "三回合情境抉擇模擬遊戲",
+                summary: "以寄養家庭社工的視角，經歷三回合情境抉擇，探討收出養媒合過程中的制度、情感與倫理拉扯。",
+                tags: []
+            },
+            { id: "case-03", status: "soon", title: "案例 03", subtitle: "課程規劃中", summary: "此案例尚在開發中，敬請期待。", tags: [] },
+            { id: "case-04", status: "soon", title: "案例 04", subtitle: "課程規劃中", summary: "此案例尚在開發中，敬請期待。", tags: [] },
+            { id: "case-05", status: "soon", title: "案例 05", subtitle: "課程規劃中", summary: "此案例尚在開發中，敬請期待。", tags: [] },
+            { id: "case-06", status: "soon", title: "案例 06", subtitle: "課程規劃中", summary: "此案例尚在開發中，敬請期待。", tags: [] },
+            { id: "case-07", status: "soon", title: "案例 07", subtitle: "課程規劃中", summary: "此案例尚在開發中，敬請期待。", tags: [] },
+            { id: "case-08", status: "soon", title: "案例 08", subtitle: "課程規劃中", summary: "此案例尚在開發中，敬請期待。", tags: [] },
+        ];
+
+        function renderWall() {
+            const grid = document.getElementById("wall-grid");
+            grid.innerHTML = "";
+            ASSIGNMENTS.forEach(item => {
+                const isReady = item.status === "ready";
+                const card = document.createElement("div");
+                card.className = "assignment-card " + (isReady ? "is-ready" : "is-soon");
+                if (isReady) card.onclick = () => showDetail(item.id);
+                card.innerHTML = `
+                    <span class="card-status ${isReady ? 'ready' : 'soon'}">${isReady ? '可查看詳情' : '即將推出'}</span>
+                    <h3>${item.title}</h3>
+                    <div class="assignment-subtitle">${item.subtitle || ''}</div>
+                    <p class="assignment-summary">${item.summary}</p>
+                    ${isReady ? '<span class="card-view-btn">查看詳情 ➔</span>' : ''}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function renderDetail(item) {
+            const container = document.getElementById("detail-content");
+            let html = `
+                <div class="detail-card">
+                    <span class="detail-tag">${item.legalBasis || '教案詳情'}</span>
+                    <h2>${item.title}</h2>
+                    <div class="detail-subtitle">${item.subtitle || ''}</div>
+
+                    <div class="detail-block">
+                        <h4><i class="fa-solid fa-bullseye"></i> 學習目標</h4>
+                        <ul>${(item.objectives || []).map(o => `<li>${o}</li>`).join('')}</ul>
+                    </div>
+
+                    <div class="detail-block">
+                        <h4><i class="fa-solid fa-book"></i> 情境脈絡</h4>
+                        <p>${item.context || item.summary}</p>
+                    </div>
+
+                    <div class="detail-block">
+                        <h4><i class="fa-solid fa-diagram-project"></i> 操作流程</h4>
+                        <div class="stage-flow">
+                            ${(item.stages || []).map((s, i) => `<span class="stage-chip">${i + 1}. ${s}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <div class="detail-block">
+                        <h4><i class="fa-solid fa-qrcode"></i> 課堂操作連結</h4>
+                        <div class="qr-section qr-section-single">
+                            <div class="qr-block">
+                                <h5>學生作答（手機掃碼）</h5>
+                                <div class="qr-canvas-wrap" id="qr-student"></div>
+                                <span class="qr-link"><a href="${item.studentUrl}" target="_blank">${item.studentUrl}</a></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+
+            // 產生 QR code
+            document.getElementById("qr-student").innerHTML = "";
+            new QRCode(document.getElementById("qr-student"), {
+                text: item.studentUrl, width: 160, height: 160,
+                colorDark: "#3e4441", colorLight: "#ffffff"
+            });
+        }
+
+        function showWall() {
+            document.getElementById("timeline-section").classList.remove("active");
+            document.getElementById("timeline-section").style.display = "none";
+            document.getElementById("hero-section").style.display = "none";
+            document.getElementById("detail-section").classList.remove("active");
+            document.getElementById("wall-section").classList.add("active");
+            renderWall();
+            window.scrollTo(0, 0);
+        }
+
+        function showDetail(id) {
+            const item = ASSIGNMENTS.find(a => a.id === id);
+            if (!item || item.status !== "ready") return;
+            document.getElementById("hero-section").style.display = "none";
+            document.getElementById("timeline-section").style.display = "none";
+            document.getElementById("wall-section").classList.remove("active");
+            document.getElementById("detail-section").classList.add("active");
+            renderDetail(item);
+            window.scrollTo(0, 0);
+        }
+
+        function backToWall() {
+            document.getElementById("detail-section").classList.remove("active");
+            document.getElementById("wall-section").classList.add("active");
+            window.scrollTo(0, 0);
+        }
+
+        function backToTimeline() {
+            document.getElementById("wall-section").classList.remove("active");
+            document.getElementById("detail-section").classList.remove("active");
+            document.getElementById("hero-section").style.display = "flex";
+            document.getElementById("timeline-section").style.display = "flex";
+            window.scrollTo(0, 0);
+        }
+    </script>
+</body>
+</html>
