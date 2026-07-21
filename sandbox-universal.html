@@ -819,7 +819,7 @@ async function doLogin() {
 
   // Try to load existing progress (non-blocking)
   try {
-    const existing = await fbGet(`students/${sid}`);
+    const existing = await fbGet(`students/s${sid}`);
     if (existing && existing.stage) {
       G.stage = existing.stage;
       if (existing.admin !== undefined) G.admin = existing.admin;
@@ -831,7 +831,7 @@ async function doLogin() {
   } catch(e) {}
 
   // Save login (non-blocking)
-  fbSet(`students/${sid}`, {
+  fbSet(`students/s${sid}`, {
     name: name,
     studentid: sid,
     loginTime: new Date().toISOString(),
@@ -902,7 +902,7 @@ function goStage(n) {
   // Check if this stage is stage3 (verdict)
   const stageKey = (CONFIG.stages[n-1] || '');
   if (stageKey === 'stage3') setTimeout(renderVerdict, 50);
-  fbSet(`students/${STUDENT_ID}`, {
+  fbSet(`students/s${STUDENT_ID}`, {
     name: G.name, studentId: G.studentId,
     stage: n, admin: G.admin, legal: G.legal,
     decision: G.decision, photoTaken: G.photoTaken, noteSaved: G.noteSaved,
@@ -1457,7 +1457,7 @@ function nextStage() {
 }
 
 function completeGame() {
-  fbSet(`students/${STUDENT_ID}`, {
+  fbSet(`students/s${STUDENT_ID}`, {
     name: G.name, studentId: G.studentId, stage: G.totalStages + 1,
     completed: true, completedTime: new Date().toISOString(),
     admin: G.admin, legal: G.legal, decision: G.decision
