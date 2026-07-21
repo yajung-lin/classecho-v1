@@ -1505,9 +1505,9 @@ async function loadTeacherData() {
   const debug = document.getElementById('ts-debug');
   if (debug) debug.textContent = `Firebase: ${FB} | students: ${students ? Object.keys(students).length : 0}筆 | decisions: ${decisions ? Object.keys(decisions).length : 0}筆`;
 
-  const sList = students ? Object.values(students) : [];
-  const dList = decisions ? Object.values(decisions) : [];
-  const vList = votes ? Object.values(votes) : [];
+const sList = students ? Object.values(students).filter(Boolean) : [];
+const dList = decisions ? Object.values(decisions).filter(Boolean) : [];
+const vList = votes ? Object.values(votes).filter(Boolean) : [];
 
   // 從學生記錄補充決策資料
   const allDecisions = sList.filter(s => s.decision).map(s => ({ choice: s.decision, name: s.name }));
